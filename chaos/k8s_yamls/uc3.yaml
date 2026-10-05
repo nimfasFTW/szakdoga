@@ -1,60 +1,98 @@
 apiVersion: v1
-
-# creating 2 pods.
-# pod_server is a dummy db, which responses 200
-# pod_client is a client app, which tries to connect to the db, but the service is misconfigured. LLM should fix it. 
-kind: Pod
+kind: ConfigMap
 metadata:
+  name: uc3-server-config
   namespace: chaos
-  name: uc3-pod-server
-spec:
-  # serviceAccountName: agent-sa
-  containers:
-    - name: uc3-server
-      image: nimfasftw/szakdoga_chaos:latest
-      stdin: true
-      tty: true
-      env:
-        - name: UC_CODE
-          value: "dummy_db"
-        - name: DB_MODE_CODE
-          value: "correct"
-        - name: UC_DUMMY_DB_PORT
-          value: 5000
-    
----
+data:
+  UC_CODE: "uc3_server"
+  UC3_DB_MODE_CODE: "correct"
+  UC3_DB_PORT: "5000"
 
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uc3-server
+  namespace: chaos
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: uc3-server
+  template:
+    metadata:
+      labels:
+        app: uc3-server
+    spec:
+      containers:
+        - name: uc3-server
+          image: nimfasftw/szakdoga_chaos:latest
+          stdin: true
+          tty: true
+          envFrom:
+            - configMapRef:
+                name: uc3-server-config
+          ports:
+            - containerPort: 5000
+
+---
 apiVersion: v1
 kind: Service
 metadata:
   namespace: chaos
-  name: uc3-pod-server-service
+  name: uc3-server-service
 spec:
   selector:
-    app.kubernetes.io/name: uc3-pod-server
+    app: uc3-server
   ports:
-    protocol: TCP
-    port: 5000
-    tartgetPort: 5090
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
 
 ---
-
-kind: Pod
+apiVersion: v1
+kind: ConfigMap
 metadata:
+  name: uc3-client-config
   namespace: chaos
-  name: uc3-pod-client
-spec:
-  # serviceAccountName: agent-sa
-  containers:
-    - name: uc3-client
-      image: nimfasftw/szakdoga_chaos:latest
-      stdin: true
-      tty: true
-      env:
-        - name: UC_CODE
-          value: "uc3"
-        
+data:
+  UC_CODE: "uc3_client"
+  # intentionally misconfigured
+  UC3_DB_HOST: "uc3-server-service"
+  UC3_DB_PORT: "5090"
+  UC3_CLIENT_PORT: "8080"
 
-  # to define memory limits, 
-  # minikube addons enable metrics-server]
-  # https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uc3-client
+  namespace: chaos
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: uc3-client
+  template:
+    metadata:
+      labels:
+        app: uc3-client
+    spec:
+      containers:
+        - name: uc3-client
+          image: nimfasftw/szakdoga_chaos:latest
+          stdin: true
+          tty: true
+          envFrom:
+            - configMapRef:
+                name: uc3-client-config
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 2

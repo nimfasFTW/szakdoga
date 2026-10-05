@@ -1,3 +1,4 @@
+import requests
 import os
 import logging
 import threading
@@ -10,9 +11,11 @@ UC1_ALLOCATED_MEM_SIZE = 105  # in MiB
 UC2_ENV_CODE = "uc2"
 UC2_ALLOCATED_MEM_SIZE = 200
 
+UC3_ENV_CODE_SERVER = "uc3_server"
+UC3_ENV_CODE_CLIENT = "uc3_client"
+
 UC4_ENV_CODE = "uc4"
 
-UC_DUMMY_DB = "dummy_db"
 
 app = Flask(__name__)
 
@@ -28,13 +31,41 @@ def main():
         uc1()
     elif uc_code == UC2_ENV_CODE:
         uc2()
+    elif uc_code == UC3_ENV_CODE_CLIENT:
+        uc3_client()
+    elif uc_code == UC3_ENV_CODE_SERVER:
+        next
     elif uc_code == UC4_ENV_CODE:
         uc4()
-    elif uc_code == UC_DUMMY_DB:
-        app.run(port=int(os.getenv("UC_DUMMY_DB_PORT", "5000")))
     else:
         logger.error(f"Unknown error code: {uc_code}")
 
+@app.route("/ready")
+def readiness():
+    db_host = os.environ["UC3_DB_HOST"]
+    db_port = os.environ["UC3_DB_PORT"]
+
+    url = f"http://{db_host}:{db_port}/getRecords"
+
+    logger.info(f"Checking database at {url}")
+
+    try:
+        response = requests.get(url, timeout=2)
+
+        if response.status_code == 200:
+            logger.info("Database connection successful")
+            return jsonify(status="ready"), 200
+
+        logger.error(
+            f"Database returned HTTP {response.status_code}"
+        )
+        return jsonify(status="not ready"), 503
+
+    except Exception as e:
+        logger.error(
+            f"Could not connect to database at {url}: {e}"
+        )
+        return jsonify(status="not ready"), 503
 
 @app.route("/getRecords")
 def handle_dummy_db():
@@ -63,6 +94,22 @@ def uc1():
 def uc2():
     data = bytearray(UC2_ALLOCATED_MEM_SIZE * 1024 * 1024) 
     time.sleep(3600)
+
+def uc3_client():
+    port = int(os.getenv("UC3_CLIENT_PORT", "8080"))
+
+    logger.info("Starting UC3 client")
+    logger.info(
+        f"Configured DB: "
+        f"{os.environ['DB_HOST']}:{os.environ['DB_PORT']}"
+    )
+
+    app.run(port=port)
+
+def uc3_server():
+    port = int(os.getenv("UC3_DB_PORT", "5000"))
+    logger.info(f"Starting DB on port {port}")
+    app.run(port=port)
 
 def uc4_worker(size_mib):
     data = bytearray(size_mib * 1024 * 1024)
