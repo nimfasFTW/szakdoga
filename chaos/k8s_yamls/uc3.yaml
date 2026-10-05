@@ -1,0 +1,60 @@
+apiVersion: v1
+
+# creating 2 pods.
+# pod_server is a dummy db, which responses 200
+# pod_client is a client app, which tries to connect to the db, but the service is misconfigured. LLM should fix it. 
+kind: Pod
+metadata:
+  namespace: chaos
+  name: uc3-pod-server
+spec:
+  # serviceAccountName: agent-sa
+  containers:
+    - name: uc3-server
+      image: nimfasftw/szakdoga_chaos:latest
+      stdin: true
+      tty: true
+      env:
+        - name: UC_CODE
+          value: "dummy_db"
+        - name: DB_MODE_CODE
+          value: "correct"
+        - name: UC_DUMMY_DB_PORT
+          value: 5000
+    
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: chaos
+  name: uc3-pod-server-service
+spec:
+  selector:
+    app.kubernetes.io/name: uc3-pod-server
+  ports:
+    protocol: TCP
+    port: 5000
+    tartgetPort: 5090
+
+---
+
+kind: Pod
+metadata:
+  namespace: chaos
+  name: uc3-pod-client
+spec:
+  # serviceAccountName: agent-sa
+  containers:
+    - name: uc3-client
+      image: nimfasftw/szakdoga_chaos:latest
+      stdin: true
+      tty: true
+      env:
+        - name: UC_CODE
+          value: "uc3"
+        
+
+  # to define memory limits, 
+  # minikube addons enable metrics-server]
+  # https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/

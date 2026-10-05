@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: uc4-config
+  namespace: chaos
+data:
+  UC4_NUMBER_OF_WORKER_THREADS: "5"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uc4-deployment
+  namespace: chaos
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: uc4
+  template:
+    metadata:
+      labels:
+        app: uc4
+    spec:
+      containers:
+        - name: uc4
+          image: nimfasftw/szakdoga_chaos:latest
+          env:
+            - name: UC_CODE
+              value: "uc4"
+            - name: UC4_NUMBER_OF_WORKER_THREADS
+              valueFrom:
+                configMapKeyRef:
+                  name: uc4-config
+                  key: UC4_NUMBER_OF_WORKER_THREADS
+            - name: UC4_MEMORY_LIMIT
+              valueFrom:
+                resourceFieldRef:
+                  containerName: uc4
+                  resource: limits.memory
+                  divisor: 1Mi
+          resources:
+            requests:
+              memory: "150Mi"
+            limits:
+              memory: "150Mi"

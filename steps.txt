@@ -1,0 +1,4 @@
+# build, tag and push docker image to hub
+
+docker build -t nimfasftw/szakdoga_chaos:latest .
+docker push nimfasftw/szakdoga_chaos:latest
