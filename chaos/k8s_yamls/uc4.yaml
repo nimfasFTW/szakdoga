@@ -4,8 +4,11 @@ metadata:
   name: uc4-config
   namespace: chaos
 data:
+  UC_CODE: "uc4"
   UC4_NUMBER_OF_WORKER_THREADS: "5"
+  
 ---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -24,14 +27,10 @@ spec:
       containers:
         - name: uc4
           image: nimfasftw/szakdoga_chaos:latest
+          envFrom:
+            - configMapRef:
+                name: uc4-config
           env:
-            - name: UC_CODE
-              value: "uc4"
-            - name: UC4_NUMBER_OF_WORKER_THREADS
-              valueFrom:
-                configMapKeyRef:
-                  name: uc4-config
-                  key: UC4_NUMBER_OF_WORKER_THREADS
             - name: UC4_MEMORY_LIMIT
               valueFrom:
                 resourceFieldRef:
