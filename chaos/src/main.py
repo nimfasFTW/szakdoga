@@ -34,7 +34,7 @@ def main():
     elif uc_code == UC3_ENV_CODE_CLIENT:
         uc3_client()
     elif uc_code == UC3_ENV_CODE_SERVER:
-        next
+        uc3_server()
     elif uc_code == UC4_ENV_CODE:
         uc4()
     else:
@@ -69,11 +69,8 @@ def readiness():
 
 @app.route("/getRecords")
 def handle_dummy_db():
-    # logger.info("reve")
 
-    # if DELAY:
-    #     time.sleep(DELAY)
-    db_mode_code = os.environ['DB_MODE_CODE']
+    db_mode_code = os.environ['UC3_DB_MODE_CODE']
 
     # simulate internal server error, like a db process being stuck
     if db_mode_code == "error":
@@ -104,12 +101,12 @@ def uc3_client():
         f"{os.environ['DB_HOST']}:{os.environ['DB_PORT']}"
     )
 
-    app.run(port=port)
+    app.run(host="0.0.0.0", port=port)
 
 def uc3_server():
     port = int(os.getenv("UC3_DB_PORT", "5000"))
     logger.info(f"Starting DB on port {port}")
-    app.run(port=port)
+    app.run(host="0.0.0.0", port=port)
 
 def uc4_worker(size_mib):
     data = bytearray(size_mib * 1024 * 1024)
