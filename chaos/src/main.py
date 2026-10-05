@@ -58,7 +58,7 @@ def handle_dummy_db():
 # allocate UC1_ALLOCATED_MEM_SIZE MiB of memory
 def uc1():
     data = bytearray(UC1_ALLOCATED_MEM_SIZE * 1024 * 1024) 
-    time.sleep(60)
+    time.sleep(3600)
 
 def uc2():
     data = bytearray(UC2_ALLOCATED_MEM_SIZE * 1024 * 1024) 

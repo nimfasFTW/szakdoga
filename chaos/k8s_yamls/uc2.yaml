@@ -1,8 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: chaos
   name: uc2-deployment
+  namespace: chaos
 spec:
   replicas: 1
   selector:
@@ -12,22 +12,18 @@ spec:
     metadata:
       labels:
         app: uc2
-  spec:
-    containers:
-      - name: uc2
-        image: nimfasftw/szakdoga_chaos:latest
-        stdin: true
-        tty: true
-        env:
-          - name: UC_CODE
-            value: "uc2"
-        resources:
-          requests:
-            memory: "100Mi"
-          limits:
-            memory: "100Mi"
-
-
-  # to define memory limits, 
-  # minikube addons enable metrics-server]
-  # https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/
+    spec:
+      containers:
+        - name: uc2
+          image: nimfasftw/szakdoga_chaos:latest
+          imagePullPolicy: Always
+          stdin: true
+          tty: true
+          env:
+            - name: UC_CODE
+              value: "uc2"
+          resources:
+            requests:
+              memory: "100Mi"
+            limits:
+              memory: "100Mi"
