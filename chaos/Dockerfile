@@ -19,4 +19,5 @@ ENV PYTHONUNBUFFERED=1
 # RUN mkdir -p /app/data
 
 # Default command: keep container alive
-CMD ["tail", "-f", "/dev/null"]
+# CMD ["tail", "-f", "/dev/null"]
+CMD ["python", "main.py"]

@@ -98,7 +98,7 @@ def uc3_client():
     logger.info("Starting UC3 client")
     logger.info(
         f"Configured DB: "
-        f"{os.environ['DB_HOST']}:{os.environ['DB_PORT']}"
+        f"{os.environ['UC3_DB_HOST']}:{os.environ['UC3_DB_PORT']}"
     )
 
     app.run(host="0.0.0.0", port=port)

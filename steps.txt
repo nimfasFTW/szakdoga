@@ -2,3 +2,38 @@
 
 docker build -t nimfasftw/szakdoga_chaos:latest .
 docker push nimfasftw/szakdoga_chaos:latest
+
+minikube start --cpus=4 --memory=8192
+
+
+kubectl exec -it ai-agent -- bash
+
+# configure docker
+sudo nvidia-ctk runtime configure --runtime=docker && sudo systemctl restart docker
+minikube delete
+
+minikube start --driver docker --container-runtime docker --gpus all
+
+# check the available resources of the running minikube cluster
+kubectl get node minikube -o jsonpath='{.status.capacity}'
+
+# start with more res. if needed
+minikube start --memory 8192 --cpus 2
+
+kubectl logs -n agent ollama-deployment-75447fcbf7-cf8pp -c ollama-pull
+
+
+kubectl rollout restart RESOURCETYPE RESOURCENAME
+source venv/bin/activate
+
+python -m venv venv/
+
+
+kubectl port-forward -n monitoring svc/monitoring-kube-prometheus-prometheus 9090:9090
+
+kubectl port-forward -n monitoring svc/monitoring-kube-prometheus-alertmanager 9093:9093
+
+kubectl port-forward -n monitoring svc/monitoring-grafana 3000:80
+
+# https://docs.langchain.com/oss/python/integrations/chat/mistralai
+# https://console.mistral.ai/home?profile_dialog=api-keys

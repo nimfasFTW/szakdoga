@@ -31,7 +31,7 @@ spec:
           tty: true
           envFrom:
             - configMapRef:
-              name: uc2-config
+                name: uc2-config
           resources:
             requests:
               memory: "100Mi"
