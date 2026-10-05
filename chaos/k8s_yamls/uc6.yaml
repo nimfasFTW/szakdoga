@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uc6
+  namespace: chaos
+  labels:
+    app: uc6
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: uc6
+  template:
+    metadata:
+      labels:
+        app: uc6
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:stable-alpine600.24-perl
+        ports:
+        - containerPort: 80
