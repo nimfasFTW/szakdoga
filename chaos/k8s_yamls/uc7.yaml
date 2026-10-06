@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: uc7-config
+  namespace: chaos
+data:
+  UC_CODE: "uc7"
+  UC7_EXTERNAL_DB_URL: "https://www.mytestdburl.com"
+  UC7_EXTERNAL_DB_PORT: "3000"
+  APP_PORT: "8080"
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uc7
+  namespace: chaos
+  labels:
+    app: uc7
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: uc7
+  template:
+    metadata:
+      labels:
+        app: uc7
+    spec:
+      containers:
+      - name: uc7
+        image: nimfasftw/szakdoga_chaos:latest
+        envFrom:
+            - configMapRef:
+                name: uc7-config
+        ports:
+          - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 2

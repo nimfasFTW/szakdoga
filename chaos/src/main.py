@@ -16,6 +16,9 @@ UC3_ENV_CODE_CLIENT = "uc3_client"
 
 UC4_ENV_CODE = "uc4"
 
+UC5_ENV_CODE = "uc5"
+UC6_ENV_CODE = "uc6"
+UC7_ENV_CODE = "uc7"
 
 app = Flask(__name__)
 
@@ -37,11 +40,22 @@ def main():
         uc3_server()
     elif uc_code == UC4_ENV_CODE:
         uc4()
+    elif uc_code == UC7_ENV_CODE or uc_code == UC5_ENV_CODE or uc_code == UC6_ENV_CODE:
+        port = int(os.getenv("APP_PORT", "8080"))
+        app.run(host="0.0.0.0", port=port)
     else:
         logger.error(f"Unknown error code: {uc_code}")
 
 @app.route("/ready")
 def readiness():
+
+    uc_code = os.environ["UC_CODE"]
+    if uc_code == UC7_ENV_CODE:
+        external_db_url = os.environ["UC7_EXTERNAL_DB_URL"]
+        external_db_port = os.environ["UC7_EXTERNAL_DB_PORT"]
+        logger.error(f"Cannot connect to database at {external_db_url}:{external_db_port}")
+        return jsonify(status="not ready"), 503
+
     db_host = os.environ["UC3_DB_HOST"]
     db_port = os.environ["UC3_DB_PORT"]
 
