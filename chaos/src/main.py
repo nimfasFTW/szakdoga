@@ -20,6 +20,14 @@ UC5_ENV_CODE = "uc5"
 UC6_ENV_CODE = "uc6"
 UC7_ENV_CODE = "uc7"
 
+UC8_ENV_CODE_SERVER = "uc8_server"
+UC8_ENV_CODE_CLIENT = "uc8_client"
+UC8_HEARTBEAT_STALE_AFTER = 5  # seconds without a heartbeat -> db worker is considered stuck
+UC8_ADMIN_PORT = 9000
+
+uc8_stuck = threading.Event()          # set -> the db worker is stuck
+uc8_last_heartbeat = time.time()
+
 app = Flask(__name__)
 
 logging.basicConfig(level=logging.INFO)
@@ -40,6 +48,10 @@ def main():
         uc3_server()
     elif uc_code == UC4_ENV_CODE:
         uc4()
+    elif uc_code == UC8_ENV_CODE_SERVER:
+        uc8_server()
+    elif uc_code == UC8_ENV_CODE_CLIENT:
+        uc8_client()
     elif uc_code == UC7_ENV_CODE or uc_code == UC5_ENV_CODE or uc_code == UC6_ENV_CODE:
         port = int(os.getenv("APP_PORT", "8080"))
         app.run(host="0.0.0.0", port=port)
@@ -50,6 +62,26 @@ def main():
 def readiness():
 
     uc_code = os.environ["UC_CODE"]
+    
+    if uc_code == UC8_ENV_CODE_SERVER:
+        stale_for = time.time() - uc8_last_heartbeat
+        if stale_for > UC8_HEARTBEAT_STALE_AFTER:
+            logger.error(f"Readiness check failed: db worker has not responded for {stale_for:.0f}s")
+            return jsonify(status="not ready"), 503
+        return jsonify(status="ready"), 200
+ 
+    if uc_code == UC8_ENV_CODE_CLIENT:
+        url = f"http://{os.environ['UC8_DB_HOST']}:{os.environ['UC8_DB_PORT']}/getRecords"
+        try:
+            response = requests.get(url, timeout=2)
+            if response.status_code == 200:
+                logger.info("Database connection successful")
+                return jsonify(status="ready"), 200
+            logger.error(f"Database returned HTTP {response.status_code}")
+        except Exception as e:
+            logger.error(f"Could not connect to database at {url}: {e}")
+        return jsonify(status="not ready"), 503
+    
     if uc_code == UC7_ENV_CODE:
         external_db_url = os.environ["UC7_EXTERNAL_DB_URL"]
         external_db_port = os.environ["UC7_EXTERNAL_DB_PORT"]
@@ -83,6 +115,18 @@ def readiness():
 
 @app.route("/getRecords")
 def handle_dummy_db():
+
+    if os.environ.get("UC_CODE") == UC8_ENV_CODE_SERVER:
+        # simulate a hung query: the request is accepted, but never answered in time
+        waited = 0
+        while uc8_stuck.is_set() and waited < 120:
+            if waited == 0:
+                logger.warning("Query received, but the db worker is blocked, request is queued")
+            time.sleep(1)
+            waited += 1
+        if uc8_stuck.is_set():
+            return jsonify(error="query timed out"), 504
+        return jsonify(status="ok"), 200
 
     db_mode_code = os.environ['UC3_DB_MODE_CODE']
 
@@ -143,6 +187,37 @@ def uc4():
     for t in threads:
         t.join()
 
+def uc8_db_worker():
+    """Fake DB worker: heartbeats every second, unless the stuck switch is on."""
+    global uc8_last_heartbeat
+    stalled_since = None
+    while True:
+        if uc8_stuck.is_set():
+            stalled_since = stalled_since or time.time()
+            stalled_for = time.time() - stalled_since
+            if int(stalled_for) % 10 == 0:
+                logger.error(f"DB worker stalled for {stalled_for:.0f}s, queries are blocked")
+        else:
+            stalled_since = None
+            uc8_last_heartbeat = time.time()
+        time.sleep(1)
+ 
+@app.route("/hang", methods=["POST"])
+def uc8_hang():
+    uc8_stuck.set()
+    logger.warning("--- switch ---")
+    return jsonify(stuck=True)
+ 
+def uc8_server():
+    port = int(os.getenv("UC8_DB_PORT", "5000"))
+    logger.info(f"Starting UC8 DB on port {port}")
+    threading.Thread(target=uc8_db_worker, daemon=True).start()
+    app.run(host="0.0.0.0", port=port, threaded=True)
+ 
+def uc8_client():
+    port = int(os.getenv("UC8_CLIENT_PORT", "8080"))
+    logger.info(f"Starting UC8 client, configured DB: {os.environ['UC8_DB_HOST']}:{os.environ['UC8_DB_PORT']}")
+    app.run(host="0.0.0.0", port=port)
 
 if __name__ == "__main__":
     main()
