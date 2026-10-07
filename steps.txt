@@ -35,5 +35,7 @@ kubectl port-forward -n monitoring svc/monitoring-kube-prometheus-alertmanager 9
 
 kubectl port-forward -n monitoring svc/monitoring-grafana 3000:80
 
+kubectl logs -n chaos deploy/dispatcher -f
+
 # https://docs.langchain.com/oss/python/integrations/chat/mistralai
 # https://console.mistral.ai/home?profile_dialog=api-keys

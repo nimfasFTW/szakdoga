@@ -1,0 +1,35 @@
+alertmanager:
+  enabled: true
+
+  config:
+    global:
+      resolve_timeout: 1m
+
+    route:
+      group_by:
+        - alertname
+        - namespace
+        - pod
+      group_wait: 5s
+      group_interval: 5s
+      repeat_interval: 1m
+      receiver: dispatcher-webhook
+
+    receivers:
+      - name: dispatcher-webhook
+        webhook_configs:
+          - url: http://dispatcher.chaos.svc.cluster.local:8000/alert
+            send_resolved: true
+
+      - name: "null"
+
+prometheus:
+  prometheusSpec:
+    scrapeInterval: 15s
+    evaluationInterval: 15s
+    ruleSelectorNilUsesHelmValues: false
+    ruleNamespaceSelector: {}
+    ruleSelector: {}
+
+grafana:
+  enabled: true
