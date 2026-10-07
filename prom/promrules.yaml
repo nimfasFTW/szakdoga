@@ -1,0 +1,48 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: chaos-experiment-rules
+  namespace: chaos
+spec:
+  groups:
+    - name: chaos-experiments
+      rules:
+
+        - alert: ChaosPodCrashLooping
+          expr: |
+            kube_pod_container_status_waiting_reason{
+              namespace="chaos",
+              reason="CrashLoopBackOff"
+            } == 1
+          for: 10s
+          labels:
+            severity: warning
+            experiment: chaos
+          annotations:
+            summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping"
+
+        - alert: ChaosPodImagePullFailure
+          expr: |
+            kube_pod_container_status_waiting_reason{
+              namespace="chaos",
+              reason=~"ErrImagePull|ImagePullBackOff"
+            } == 1
+          for: 10s
+          labels:
+            severity: warning
+            experiment: chaos
+          annotations:
+            summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} cannot pull its image"
+
+        - alert: ChaosPodNotReady
+          expr: |
+            kube_pod_status_ready{
+              namespace="chaos",
+              condition="false"
+            } == 1
+          for: 10s
+          labels:
+            severity: warning
+            experiment: chaos
+          annotations:
+            summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is not ready"

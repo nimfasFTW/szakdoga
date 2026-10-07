@@ -37,5 +37,8 @@ kubectl port-forward -n monitoring svc/monitoring-grafana 3000:80
 
 kubectl logs -n chaos deploy/dispatcher -f
 
+
+ helm upgrade monitoring prometheus-community/kube-prometheus-stack --namespace monitoring -f ../misc/values.yaml
+
 # https://docs.langchain.com/oss/python/integrations/chat/mistralai
 # https://console.mistral.ai/home?profile_dialog=api-keys
