@@ -4,6 +4,16 @@ from fastapi import FastAPI, Request
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("dispatcher")
 
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s",
+                              "%Y-%m-%d %H:%M:%S")
+
+ch.setFormatter(formatter)
+
+logger.addHandler(ch)
+
 app = FastAPI()
 
 @app.post("/alert")
@@ -18,7 +28,7 @@ async def receive_alert(request: Request):
                 alert.get("labels", {}).get("namespace"),
                 alert.get("labels", {}).get("pod"),
             )
-            logger.info("full payload: %s", alert)
+            # logger.info("full payload: %s", alert)
     return {"received": len(payload.get("alerts", []))}
 
 @app.get("/healthz")

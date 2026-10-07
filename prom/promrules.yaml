@@ -46,3 +46,6 @@ spec:
             experiment: chaos
           annotations:
             summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is not ready"
+
+
+#  Alerting rules without the keep_firing_for clause will deactivate on the first evaluation where the condition is not met
