@@ -1,0 +1,43 @@
+# Lookup table for the fast loop.
+#
+# A playbook constrains some of: alertname, waiting_reason, termination_reason, attempt.
+# Fields you leave out are wildcards. The most specific matching playbook wins.
+# No match -> not handled by the fast loop (deterministic SUT: give up / hybrid SUT: LLM).
+#
+# `attempt` = how many fast-loop actions were already taken on this workload for the
+# current incident. Tiers are expressed by listing attempt 0, 1, ...; when the list runs
+# out, the playbook is exhausted and the lookup misses (= escalation).
+
+playbooks:
+
+  # ---- OOM family: UC-1, UC-2, UC-4 -------------------------------------------------
+  # Matches on the termination reason only, so it does not matter which of the
+  # (duplicate) alerts for the same crash-looping pod reaches us first.
+  - id: oom-bump-small
+    match: { termination_reason: OOMKilled, attempt: 0 }
+    action: bump_memory_limit
+    params: { increase_pct: 25, max_limit_mib: 256 }
+
+  - id: oom-bump-large
+    match: { termination_reason: OOMKilled, attempt: 1 }
+    action: bump_memory_limit
+    params: { increase_pct: 100, max_limit_mib: 256 }
+
+  # attempt >= 2: intentionally no entry -> exhausted -> miss -> escalation
+
+  # ---- Image pull family: UC-5, UC-6 ------------------------------------------------
+  # The pull failure looks identical whether the registry had a blip (UC-5) or the tag
+  # does not exist (UC-6). The only deterministic answer is "wait and see".
+  # `termination_reason: null` = "never crashed before". It also keeps this entry strictly more
+  # specific than the OOM ones, so a pod that is both OOM-killed and stuck pulling is never ambiguous.
+  - id: imagepull-wait
+    match: { waiting_reason: ImagePull, termination_reason: null, attempt: 0 }
+    action: wait_and_verify
+    params: { wait_s: 60 }
+
+  # attempt >= 1: still failing after the wait -> miss -> escalation
+
+  # ---- Deliberately NOT here ---------------------------------------------------------
+  # UC-3 (bad config), UC-7 (dependency), UC-8 (transitive): the pod is Running and merely
+  # NotReady (no waiting_reason, no termination_reason), or crashes with termination
+  # 'Error'. Nothing in this table matches them, which is exactly the point.

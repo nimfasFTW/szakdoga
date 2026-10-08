@@ -1,10 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dispatcher-config
+  namespace: chaos
+data:
+  WATCHED_NAMESPACES: "chaos"
+
+---
+
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: dispatcher
   namespace: chaos
 spec:
-  replicas: 1
+  replicas: 1 
   selector:
     matchLabels:
       app: dispatcher
@@ -13,12 +24,18 @@ spec:
       labels:
         app: dispatcher
     spec:
+      serviceAccountName: dispatcher
       containers:
         - name: dispatcher
           image: nimfasftw/szakdoga_dispatcher:latest
           ports:
             - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: dispatcher-config
+
 ---
+
 apiVersion: v1
 kind: Service
 metadata:

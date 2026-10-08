@@ -4,5 +4,6 @@ set -euo pipefail
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 docker build -t nimfasftw/szakdoga_dispatcher:latest "$SCRIPT_DIR/../dispatcher/."
 docker push nimfasftw/szakdoga_dispatcher:latest
+# kubectl apply -f "../dispatcher/rbac.yaml"
 kubectl rollout restart deployment -n chaos dispatcher
 
