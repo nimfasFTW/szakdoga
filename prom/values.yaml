@@ -1,3 +1,6 @@
+defaultRules:
+  create: false
+
 alertmanager:
   enabled: true
 
@@ -10,8 +13,8 @@ alertmanager:
         - alertname
         - namespace
         - pod
-      group_wait: 5s
-      group_interval: 5s
+      group_wait: 0s
+      group_interval: 0s
       repeat_interval: 1m
       receiver: dispatcher-webhook
 
@@ -25,11 +28,18 @@ alertmanager:
 
 prometheus:
   prometheusSpec:
-    scrapeInterval: 10s
-    evaluationInterval: 10s
+    scrapeInterval: 2s
+    evaluationInterval: 2s
+    scrapeTimeout: 2s
     ruleSelectorNilUsesHelmValues: false
     ruleNamespaceSelector: {}
     ruleSelector: {}
+
+kube-state-metrics:
+  prometheus:
+    monitor:
+      interval: 2s             # the ServiceMonitor can override the global interval
+      scrapeTimeout: 2s
 
 grafana:
   enabled: true

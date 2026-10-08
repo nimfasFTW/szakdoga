@@ -14,7 +14,7 @@ spec:
               namespace="chaos",
               reason="CrashLoopBackOff"
             } == 1
-          for: 10s
+          for: 0s
           labels:
             severity: warning
             experiment: chaos
@@ -27,7 +27,7 @@ spec:
               namespace="chaos",
               reason=~"ErrImagePull|ImagePullBackOff"
             } == 1
-          for: 10s
+          for: 0s
           labels:
             severity: warning
             experiment: chaos
@@ -40,7 +40,7 @@ spec:
               namespace="chaos",
               condition="false"
             } == 1
-          for: 10s
+          for: 0s
           labels:
             severity: warning
             experiment: chaos
