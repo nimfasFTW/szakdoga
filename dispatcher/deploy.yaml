@@ -5,6 +5,7 @@ metadata:
   namespace: chaos
 data:
   WATCHED_NAMESPACES: "chaos"
+  DETER_RESOLVER_SVC_NAME: "deter-resolver"
 
 ---
 

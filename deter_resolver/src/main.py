@@ -12,7 +12,8 @@ app = FastAPI()
 
 @app.post("/resolve")
 def receive_alert(payload: dict = Body(...)):
-    logger.info(f"Received request to resolve: {dict}")
+    logger.info(f"Received request to resolve: {payload}")
+    return {"received": len(payload), "results": payload}
     
 @app.get("/healthz")
 async def health():

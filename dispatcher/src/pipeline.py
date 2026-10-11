@@ -40,7 +40,7 @@ def handle_alert(alert: dict, cfg: Config, inspector: Inspector,
     status = alert.get("status")
 
     def ignored(why: str) -> dict[str, Any]:
-        logger.debug("ignored alert=%s pod=%s: %s", alertname, pod, why)
+        logger.info("ignored alert=%s pod=%s: %s", alertname, pod, why)
         return {"outcome": "ignored", "alertname": alertname, "why": why}
 
     if status != "firing":
