@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: deter-resolver-config
+  namespace: chaos
+data:
+  WATCHED_NAMESPACES: "chaos"
+
+---
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deter-resolver
+  namespace: chaos
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: deter-resolver
+  template:
+    metadata:
+      labels:
+        app: deter-resolver
+    spec:
+      serviceAccountName: deter-resolver
+      containers:
+        - name: deter-resolver
+          image: nimfasftw/szakdoga_deter_resolver:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: deter-resolver-config
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: deter-resolver
+  namespace: chaos
+spec:
+  selector:
+    app: deter-resolver
+  ports:
+    - port: 8000
+      targetPort: 8000
