@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llm-resolver-config
+  namespace: chaos
+data:
+  WATCHED_NAMESPACES: "chaos"
+  VERIFY_STABLE_S: "10"   # a fixed workload must stay ready, with no restarts, for this long
+  VERIFY_POLL_S: "2"
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-resolver
+  namespace: chaos
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: llm-resolver
+  template:
+    metadata:
+      labels:
+        app: llm-resolver
+    spec:
+      serviceAccountName: llm-resolver
+      containers:
+        - name: llm-resolver
+          image: nimfasftw/szakdoga_llm_resolver:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: llm-resolver-config
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-resolver
+  namespace: chaos
+spec:
+  selector:
+    app: llm-resolver
+  ports:
+    - port: 8000
+      targetPort: 8000

@@ -1,0 +1,35 @@
+# The resolver changes workloads, so this is the only place with write access.
+# Namespace-scoped on purpose: it cannot touch anything outside `chaos`.
+# Add `configmaps: get, patch` only if a deterministic playbook ever needs to edit config.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: llm-resolver
+  namespace: chaos
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: llm-resolver
+  namespace: chaos
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "patch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]          # list: verification reads the pods behind a Deployment
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: llm-resolver
+  namespace: chaos
+subjects:
+  - kind: ServiceAccount
+    name: llm-resolver
+    namespace: chaos
+roleRef:
+  kind: Role
+  name: llm-resolver
+  apiGroup: rbac.authorization.k8s.io
