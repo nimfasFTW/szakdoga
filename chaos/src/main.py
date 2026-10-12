@@ -6,10 +6,10 @@ import time
 from flask import Flask, jsonify
 
 UC1_ENV_CODE = "uc1"
-UC1_ALLOCATED_MEM_SIZE = 105  # in MiB
+UC1_ALLOCATED_MEM_SIZE = 75  # in MiB (+~36 MiB interpreter/flask overhead: needs ~111 > 100Mi limit, fits in 125Mi)
 
 UC2_ENV_CODE = "uc2"
-UC2_ALLOCATED_MEM_SIZE = 200
+UC2_ALLOCATED_MEM_SIZE = 160  # needs ~196: more than +25% (125Mi), fits in the second tier (250Mi)
 
 UC3_ENV_CODE_SERVER = "uc3_server"
 UC3_ENV_CODE_CLIENT = "uc3_client"
@@ -172,10 +172,8 @@ def uc4_worker(size_mib):
 
 def uc4():
     n_of_workers = int(os.environ["UC4_NUMBER_OF_WORKER_THREADS"])
-    memory_limit_mib = int(os.environ["UC4_MEMORY_LIMIT"])
-    # intentionally over-allocate relative to the limit to simulate a leak
-    overcommit_factor = 1.3
-    worker_size = int((memory_limit_mib * overcommit_factor) // n_of_workers)
+    # fixed size PER worker, so the total (n * size) really shrinks when the worker count is reduced
+    worker_size = int(os.environ["UC4_WORKER_SIZE_MIB"])
 
     threads = []
     for i in range(n_of_workers):

@@ -6,6 +6,7 @@ metadata:
 data:
   UC_CODE: "uc4"
   UC4_NUMBER_OF_WORKER_THREADS: "5"
+  UC4_WORKER_SIZE_MIB: "50"
   
 ---
 
@@ -30,15 +31,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: uc4-config
-          env:
-            - name: UC4_MEMORY_LIMIT
-              valueFrom:
-                resourceFieldRef:
-                  containerName: uc4
-                  resource: limits.memory
-                  divisor: 1Mi
           resources:
             requests:
-              memory: "150Mi"
+              memory: "200Mi"
             limits:
-              memory: "150Mi"
+              memory: "200Mi"
