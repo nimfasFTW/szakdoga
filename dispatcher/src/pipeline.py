@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 from attempts import AttemptStore
+from guard import IncidentGuard
 from lookup import LookupTable
 from signature import Facts, build_signature
 
@@ -32,7 +33,12 @@ class Config:
 
 
 def handle_alert(alert: dict, cfg: Config, inspector: Inspector,
-                 table: LookupTable, attempts: AttemptStore) -> dict[str, Any]:
+                 table: LookupTable, attempts: AttemptStore, guard: IncidentGuard) -> dict[str, Any]:
+    """Decide what to do about one alert. Never executes anything.
+
+    outcome == "fast_loop": the incident lock for the workload is HELD on return, and the caller
+    must hand the result to dispatch.run_fast_loop(), which releases it. Every other outcome
+    leaves the lock free."""
     labels = alert.get("labels", {})
     alertname = labels.get("alertname", "")
     namespace = labels.get("namespace", "")
@@ -57,16 +63,26 @@ def handle_alert(alert: dict, cfg: Config, inspector: Inspector,
         return {"outcome": "skipped", "alertname": alertname, "pod": pod,
                 "why": "pod no longer exists; it will re-alert if the problem persists"}
 
-    attempt = attempts.get(facts.workload_key)
-    sig = build_signature(facts, attempt)
-    decision = table.match(sig)
+    key = facts.workload_key
+    if not guard.try_acquire(key):
+        logger.info("in_flight alert=%s pod=%s workload=%s", alertname, pod, key)
+        return {"outcome": "in_flight", "alertname": alertname, "pod": pod, "workload": key,
+                "why": "an incident for this workload is already being handled"}
+
+    try:
+        attempt = attempts.get(key)
+        sig = build_signature(facts, attempt)
+        decision = table.match(sig)
+    except Exception:
+        guard.release(key)
+        raise
 
     pb = decision.playbook
     result = {
         "outcome": "fast_loop" if decision.matched else "no_match",
         "alertname": alertname,
         "pod": pod,
-        "workload": facts.workload_key,
+        "workload": key,
         "signature": dataclasses.asdict(sig),
         "playbook": pb.id if pb else None,
         "action": pb.action if pb else None,
@@ -74,5 +90,16 @@ def handle_alert(alert: dict, cfg: Config, inspector: Inspector,
         "reason": decision.reason,
         "facts": dataclasses.asdict(facts),   # restart_count, exit_code, ready, ... for the data lake
     }
+    if pb:
+        result["action_request"] = {
+            "incident": f"{key}#{attempt}",
+            "action": pb.action,
+            "params": dict(pb.params),
+            "target": {"namespace": facts.namespace, "kind": facts.workload_kind,
+                       "name": facts.workload_name, "container": facts.container},
+            "context": {"playbook": pb.id, "alertname": alertname, "pod": pod, "attempt": attempt},
+        }
+    else:
+        guard.release(key)   # nothing to execute, so nothing to hold
     logger.info("decision %s", json.dumps(result, sort_keys=True))
     return result

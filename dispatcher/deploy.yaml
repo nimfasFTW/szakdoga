@@ -6,6 +6,9 @@ metadata:
 data:
   WATCHED_NAMESPACES: "chaos"
   DETER_RESOLVER_SVC_NAME: "deter-resolver"
+  RESOLVER_TIMEOUT_S: "180"   # must exceed the longest verification window
+  INCIDENT_LEASE_S: "300"     # must exceed RESOLVER_TIMEOUT_S, or a lock could expire mid-incident
+  ATTEMPT_TTL_S: "600"        # an abandoned incident is forgotten after this long
 
 ---
 

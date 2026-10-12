@@ -16,13 +16,15 @@ playbooks:
   - id: oom-bump-small
     match: { termination_reason: OOMKilled, attempt: 0 }
     action: bump_memory_limit
-    params: { increase_pct: 25, max_limit_mib: 256 }
+    params: { increase_pct: 25, max_limit_mib: 256, timeout_s: 60 }
 
   - id: oom-bump-large
     match: { termination_reason: OOMKilled, attempt: 1 }
     action: bump_memory_limit
-    params: { increase_pct: 100, max_limit_mib: 256 }
+    params: { increase_pct: 100, max_limit_mib: 256, timeout_s: 60 }
 
+  # timeout_s = verification window: how long the resolver waits for the workload to become healthy
+  # (and stay so for VERIFY_STABLE_S) before declaring the attempt failed. Every wasted attempt costs one.
   # attempt >= 2: intentionally no entry -> exhausted -> miss -> escalation
 
   # ---- Image pull family: UC-5, UC-6 ------------------------------------------------

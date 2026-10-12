@@ -1,23 +1,45 @@
 from __future__ import annotations
 
 import threading
-from collections import defaultdict
+import time
+from typing import Callable, Optional
+
+# How many fast-loop actions were already taken on a workload for the current incident.
+# The count expires after `ttl_s` without activity, so an incident that was abandoned
+# (e.g. the playbook ran out) does not poison the next, unrelated failure of the same workload.
 
 
 class AttemptStore:
-    def __init__(self) -> None:
-        self._counts: dict[str, int] = defaultdict(int)
+    def __init__(self, ttl_s: Optional[float] = 600.0, clock: Callable[[], float] = time.monotonic) -> None:
+        self._entries: dict[str, tuple[int, float]] = {}   # key -> (count, last_update)
+        self._ttl = ttl_s
+        self._clock = clock
         self._lock = threading.Lock()
+
+    def _live(self, key: str) -> int:
+        entry = self._entries.get(key)
+        if entry is None:
+            return 0
+        count, updated = entry
+        if self._ttl is not None and self._clock() - updated > self._ttl:
+            del self._entries[key]
+            return 0
+        return count
 
     def get(self, workload_key: str) -> int:
         with self._lock:
-            return self._counts[workload_key]
+            return self._live(workload_key)
 
     def increment(self, workload_key: str) -> int:
         with self._lock:
-            self._counts[workload_key] += 1
-            return self._counts[workload_key]
+            count = self._live(workload_key) + 1
+            self._entries[workload_key] = (count, self._clock())
+            return count
 
     def reset(self, workload_key: str) -> None:
         with self._lock:
-            self._counts.pop(workload_key, None)
+            self._entries.pop(workload_key, None)
+
+    def reset_all(self) -> None:
+        with self._lock:
+            self._entries.clear()
