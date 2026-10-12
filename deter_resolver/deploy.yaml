@@ -5,6 +5,8 @@ metadata:
   namespace: chaos
 data:
   WATCHED_NAMESPACES: "chaos"
+  VERIFY_STABLE_S: "10"   # a fixed workload must stay ready, with no restarts, for this long
+  VERIFY_POLL_S: "2"
 
 ---
 
