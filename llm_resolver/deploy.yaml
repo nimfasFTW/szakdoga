@@ -7,6 +7,9 @@ data:
   WATCHED_NAMESPACES: "chaos"
   VERIFY_STABLE_S: "10"   # a fixed workload must stay ready, with no restarts, for this long
   VERIFY_POLL_S: "2"
+  VERIFY_TIMEOUT_S: "60"   # how long the final verification waits for the workload after the agent changed something
+  AGENT_MAX_STEPS: "20"    # max LLM calls per incident (one step = one model call, usually followed by tool calls)
+  LLM_MODEL: "gemini-3.7-flash"
 
 ---
 
@@ -34,6 +37,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: llm-resolver-config
+            - secretRef:
+                name: llm-resolver-secret
 
 ---
 

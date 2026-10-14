@@ -1,6 +1,6 @@
-# The resolver changes workloads, so this is the only place with write access.
-# Namespace-scoped on purpose: it cannot touch anything outside `chaos`.
-# Add `configmaps: get, patch` only if a deterministic playbook ever needs to edit config.
+# The LLM resolver investigates and changes workloads, so (like deter-resolver) this is a place with
+# write access. Namespace-scoped on purpose: it cannot touch anything outside `chaos`.
+# Deliberately NOT granted: secrets, create/delete of anything, and any cluster-wide permission.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -15,10 +15,22 @@ metadata:
 rules:
   - apiGroups: ["apps"]
     resources: ["deployments"]
-    verbs: ["get", "patch"]
+    verbs: ["get", "list", "patch"]   # list: list_workloads; patch: image/resources/env/restart
   - apiGroups: [""]
     resources: ["pods"]
-    verbs: ["get", "list"]          # list: verification reads the pods behind a Deployment
+    verbs: ["get", "list"]            # list: verification and get_pods read the pods behind a Deployment
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]                    # get_pod_logs
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list"]            # get_events
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "patch"]           # get_configmap / set_configmap_value
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list", "patch"]   # list_services / patch_service
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
