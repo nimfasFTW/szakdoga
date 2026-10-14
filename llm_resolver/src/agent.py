@@ -14,12 +14,13 @@ from typing import Optional, Sequence
 
 from langchain.agents import create_agent
 from langchain_core.messages import AIMessage
+from langchain_core.rate_limiters import InMemoryRateLimiter
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.errors import GraphRecursionError
 
 logger = logging.getLogger("llm_resolver.agent")
 
-MODEL_NAME = os.getenv("LLM_MODEL", "gemini-3.7-flash")
+MODEL_NAME = os.getenv("LLM_MODEL", "gemini-3.8-flash")
 
 SYSTEM_PROMPT = """\
 You are an autonomous Kubernetes SRE agent. A monitoring alert fired for a workload. Find the \
@@ -71,7 +72,13 @@ class AgentRun:
 def get_model() -> ChatGoogleGenerativeAI:   # lazy: importing this module must not need credentials
     if not (os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")):
         logger.warning("GOOGLE_API_KEY is not set; the first model call will fail")
+    # Client-side throttle for quota-limited keys (the free tier allows ~5 requests/min). The SDK's own
+    # retry waits ~1 s, but the API asks for ~25 s, so without this a run dies after a handful of steps.
+    rpm = float(os.getenv("LLM_RPM", "0"))
+    limiter = InMemoryRateLimiter(requests_per_second=rpm / 60, check_every_n_seconds=0.1,
+                                  max_bucket_size=1) if rpm > 0 else None
     return ChatGoogleGenerativeAI(
+        rate_limiter=limiter,
         model=MODEL_NAME,
         temperature=float(os.getenv("LLM_TEMPERATURE", "1.0")),   # Gemini 3+ is tuned for 1.0
         max_tokens=None,

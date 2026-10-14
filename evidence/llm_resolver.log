@@ -1,0 +1,655 @@
+nimfas@banyek:~/szakdoga$ kubectl logs -n chaos deploy/llm-resolver -f
+/usr/local/lib/python3.13/site-packages/langgraph/checkpoint/serde/encrypted.py:5: LangChainPendingDeprecationWarning: The default value of `allowed_objects` will change in a future version. Pass an explicit value (e.g., allowed_objects='messages' or allowed_objects='core') to suppress this warning.
+  from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2026-10-14 20:51:30 - INFO - request {"action": "bump_memory_limit", "context": {"alertname": "ChaosPodCrashLooping", "attempt": 0, "playbook": "oom-bump-small", "pod": "uc1-deployment-d7564bcd5-td77x"}, "incident": "chaos/Deployment/uc1-deployment#0", "params": {"increase_pct": 25, "max_limit_mib": 256, "timeout_s": 60}, "target": {"container": "uc1", "kind": "Deployment", "name": "uc1-deployment", "namespace": "chaos"}}
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 503 Service Unavailable"
+INFO:google_genai._api_client:Retrying google.genai._api_client.BaseApiClient._request_once in 1.71 seconds as it raised ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}.
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-14 20:51:57 - INFO - tool get_deployment {"deployment": "uc1-deployment"} -> ok
+2026-10-14 20:51:58 - INFO - tool get_pods {"deployment": "uc1-deployment"} -> ok
+2026-10-14 20:51:58 - INFO - tool get_events {"name_prefix": "uc1"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-14 20:52:02 - INFO - tool list_workloads {} -> ok
+2026-10-14 20:52:02 - INFO - tool get_configmap {"configmap": "uc1-config"} -> ok
+2026-10-14 20:52:02 - INFO - tool get_pod_logs {"pod": "uc1-deployment-d7564bcd5-td77x", "container": null, "previous": true, "tail_lines": 80} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-14 20:52:18 - INFO - tool list_services {} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-14 20:52:32 - INFO - tool get_configmap {"configmap": "llm-resolver-config"} -> ok
+2026-10-14 20:52:32 - INFO - tool get_configmap {"configmap": "dispatcher-config"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-14 20:52:52 - INFO - tool set_container_resources {"deployment": "uc1-deployment", "container": "uc1", "memory_limit": "256Mi", "memory_request": "256Mi", "cpu_limit": null, "cpu_request": null} -> FAILED (ERROR: ApiTypeError: Got an unexpected keyword argument '_content_type' to method patch_namespaced_deployment)
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-14 20:53:06 - INFO - tool set_container_env {"deployment": "uc1-deployment", "name": "DUMMY", "value": "test", "container": "uc1"} -> FAILED (ERROR: ApiTypeError: Got an unexpected keyword argument '_content_type' to method patch_namespaced_deployment)
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-14 20:53:22 - INFO - tool get_pods {"deployment": "dispatcher"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-14 20:53:31 - INFO - tool get_pod_logs {"pod": "dispatcher-5f9f989f9d-7mztf", "container": null, "previous": false, "tail_lines": 300} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-14 20:53:45 - INFO - tool get_pods {"deployment": "llm-resolver"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-14 20:54:01 - INFO - tool get_pod_logs {"pod": "llm-resolver-68d465bfbf-465m6", "container": null, "previous": false, "tail_lines": 300} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-14 20:54:19 - INFO - tool restart_deployment {"deployment": "uc1-deployment"} -> FAILED (ERROR: ApiTypeError: Got an unexpected keyword argument '_content_type' to method patch_namespaced_deployment)
+2026-10-14 20:54:45 - INFO - request {"action": "bump_memory_limit", "context": {"alertname": "ChaosPodNotReady", "attempt": 0, "playbook": "oom-bump-small", "pod": "uc1-deployment-d7564bcd5-td77x"}, "incident": "chaos/Deployment/uc1-deployment#0", "params": {"increase_pct": 25, "max_limit_mib": 256, "timeout_s": 60}, "target": {"container": "uc1", "kind": "Deployment", "name": "uc1-deployment", "namespace": "chaos"}}
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-14 20:54:55 - INFO - tool list_workloads {} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-14 20:54:57 - INFO - tool set_configmap_value {"configmap": "uc1-config", "key": "UC_CODE", "value": "uc1"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-14 20:55:17 - INFO - tool get_pods {"deployment": "uc1-deployment"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-14 20:55:21 - INFO - tool check_health {"deployment": "uc1-deployment", "wait_s": 0} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-14 20:55:32 - INFO - tool get_deployment {"deployment": "uc1-deployment"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-14 20:55:47 - INFO - tool get_pod_logs {"pod": "uc1-deployment-d7564bcd5-td77x", "container": null, "previous": true, "tail_lines": 80} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-14 20:56:01 - INFO - tool get_configmap {"configmap": "uc1-config"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-14 20:56:30 - INFO - tool get_events {"name_prefix": "uc1"} -> ok
+2026-10-14 20:56:31 - INFO - verdict {"action": "llm_agent", "action_applied_after_s": null, "applied": false, "detail": {"changes": [], "llm": {"input_tokens": 159879, "model": "gemini-3.7-flash", "output_tokens": 11125, "steps": 14}, "summary": "ROOT CAUSE: The `uc1` container in `uc1-deployment` is killed by the OOM killer (exit code 137) because its memory limit of 100Mi is insufficient for the workload.\nACTIONS: none\nOUTCOME: not fixed, and why: Attempted to increase container memory limits via `set_container_resources`, but deployment mutation tools in the resolver environment fail with `ApiTypeError: Got an unexpected keyword argument '_content_type' to method patch_namespaced_deployment`, preventing updates to the Deployment spec.", "tool_calls": [{"args": {"deployment": "uc1-deployment"}, "ok": true, "tool": "get_deployment"}, {"args": {"deployment": "uc1-deployment"}, "ok": true, "tool": "get_pods"}, {"args": {"name_prefix": "uc1"}, "ok": true, "tool": "get_events"}, {"args": {}, "ok": true, "tool": "list_workloads"}, {"args": {"configmap": "uc1-config"}, "ok": true, "tool": "get_configmap"}, {"args": {"container": null, "pod": "uc1-deployment-d7564bcd5-td77x", "previous": true, "tail_lines": 80}, "ok": true, "tool": "get_pod_logs"}, {"args": {}, "ok": true, "tool": "list_services"}, {"args": {"configmap": "llm-resolver-config"}, "ok": true, "tool": "get_configmap"}, {"args": {"configmap": "dispatcher-config"}, "ok": true, "tool": "get_configmap"}, {"args": {"container": "uc1", "cpu_limit": null, "cpu_request": null, "deployment": "uc1-deployment", "memory_limit": "256Mi", "memory_request": "256Mi"}, "ok": false, "tool": "set_container_resources"}, {"args": {"container": "uc1", "deployment": "uc1-deployment", "name": "DUMMY", "value": "test"}, "ok": false, "tool": "set_container_env"}, {"args": {"deployment": "dispatcher"}, "ok": true, "tool": "get_pods"}, {"args": {"container": null, "pod": "dispatcher-5f9f989f9d-7mztf", "previous": false, "tail_lines": 300}, "ok": true, "tool": "get_pod_logs"}, {"args": {"deployment": "llm-resolver"}, "ok": true, "tool": "get_pods"}, {"args": {"container": null, "pod": "llm-resolver-68d465bfbf-465m6", "previous": false, "tail_lines": 300}, "ok": true, "tool": "get_pod_logs"}, {"args": {"deployment": "uc1-deployment"}, "ok": false, "tool": "restart_deployment"}, {"args": {"configmap": "uc1-config", "key": "UC_CODE", "value": "uc1"}, "ok": true, "tool": "set_configmap_value"}, {"args": {"deployment": "uc1-deployment", "wait_s": 0}, "ok": true, "tool": "check_health"}], "verification": {"healthy": false, "last": {"ready": false, "restarts": 5, "rolled_out": true}, "waited_s": 14.1}}, "duration_s": 306.4, "finished_at": "2026-10-14T20:56:31+00:00", "incident": "chaos/Deployment/uc1-deployment#0", "started_at": "2026-10-14T20:51:30+00:00", "status": "unresolved"}
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 429 Too Many Requests"
+INFO:google_genai._api_client:Retrying google.genai._api_client.BaseApiClient._request_once in 1.91 seconds as it raised ClientError: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.7-flash\nPlease retry in 3h3m16.304858909s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.7-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '10996s'}]}}.
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 429 Too Many Requests"
+2026-10-14 20:56:45 - ERROR - agent run failed
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.13/site-packages/langchain_google_genai/chat_models.py", line 4183, in _generate
+    response: GenerateContentResponse = self.client.models.generate_content(
+                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        **request,
+        ^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/google/genai/models.py", line 6301, in generate_content
+    return self._generate_content_with_continuation(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        model=model, contents=contents, config=parsed_config
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/google/genai/models.py", line 6129, in _generate_content_with_continuation
+    response = self._generate_content(
+        model=model, contents=contents, config=call_config
+    )
+  File "/usr/local/lib/python3.13/site-packages/google/genai/models.py", line 4668, in _generate_content
+    response = self._api_client.request(
+        'post', path, request_dict, http_options
+    )
+  File "/usr/local/lib/python3.13/site-packages/google/genai/_api_client.py", line 1824, in request
+    response = self._request(http_request, http_options, stream=False)
+  File "/usr/local/lib/python3.13/site-packages/google/genai/_api_client.py", line 1619, in _request
+    return retry(self._request_once, http_request, stream)  # type: ignore[no-any-return]
+  File "/usr/local/lib/python3.13/site-packages/tenacity/__init__.py", line 470, in __call__
+    do = self.iter(retry_state=retry_state)
+  File "/usr/local/lib/python3.13/site-packages/tenacity/__init__.py", line 371, in iter
+    result = action(retry_state)
+  File "/usr/local/lib/python3.13/site-packages/tenacity/__init__.py", line 413, in exc_check
+    raise retry_exc.reraise()
+          ~~~~~~~~~~~~~~~~~^^
+  File "/usr/local/lib/python3.13/site-packages/tenacity/__init__.py", line 184, in reraise
+    raise self.last_attempt.result()
+          ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/usr/local/lib/python3.13/concurrent/futures/_base.py", line 453, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/usr/local/lib/python3.13/concurrent/futures/_base.py", line 402, in __get_result
+    raise self._exception
+  File "/usr/local/lib/python3.13/site-packages/tenacity/__init__.py", line 473, in __call__
+    result = fn(*args, **kwargs)
+  File "/usr/local/lib/python3.13/site-packages/google/genai/_api_client.py", line 1598, in _request_once
+    errors.APIError.raise_for_response(response)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/google/genai/errors.py", line 173, in raise_for_response
+    cls.raise_error(response.status_code, response_json, response)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/google/genai/errors.py", line 202, in raise_error
+    raise ClientError(status_code, response_json, response)
+google.genai.errors.ClientError: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.7-flash\nPlease retry in 3h3m14.247474799s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.7-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '10994s'}]}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/agent.py", line 114, in investigate
+    for state in agent.stream({"messages": [{"role": "user", "content": prompt}]},
+                 ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                              config={"recursion_limit": 2 * max_steps},   # a step = model node + tools node, so this allows max_steps model calls
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                              stream_mode="values"):
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/langgraph/pregel/main.py", line 2669, in stream
+    for _ in runner.tick(
+             ~~~~~~~~~~~^
+        [t for t in loop.tasks.values() if not t.writes],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        schedule_task=loop.accept_push,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ):
+    ^
+  File "/usr/local/lib/python3.13/site-packages/langgraph/pregel/_runner.py", line 167, in tick
+    run_with_retry(
+    ~~~~~~~~~~~~~~^
+        t,
+        ^^
+    ...<10 lines>...
+        },
+        ^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/langgraph/pregel/_retry.py", line 71, in run_with_retry
+    return task.proc.invoke(task.input, config)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", line 656, in invoke
+    input = context.run(step.invoke, input, config, **kwargs)
+  File "/usr/local/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", line 400, in invoke
+    ret = self.func(*args, **kwargs)
+  File "/usr/local/lib/python3.13/site-packages/langchain/agents/factory.py", line 1261, in model_node
+    model_response = _execute_model_sync(request)
+  File "/usr/local/lib/python3.13/site-packages/langchain/agents/factory.py", line 1233, in _execute_model_sync
+    output = model_.invoke(messages)
+  File "/usr/local/lib/python3.13/site-packages/langchain_core/runnables/base.py", line 6018, in invoke
+    return self.bound.invoke(
+           ~~~~~~~~~~~~~~~~~^
+        input,
+        ^^^^^^
+        self._merge_configs(config),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **{**self.kwargs, **kwargs},
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/langchain_google_genai/chat_models.py", line 3584, in invoke
+    return super().invoke(input, config, stop=stop, **kwargs)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 488, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/usr/local/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1877, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1684, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 2022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/usr/local/lib/python3.13/site-packages/langchain_google_genai/chat_models.py", line 4187, in _generate
+    _handle_client_error(e, request)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/langchain_google_genai/chat_models.py", line 326, in _handle_client_error
+    raise error_type(msg) from e
+langchain_google_genai.chat_models.GoogleRateLimitError: Error calling model 'gemini-3.7-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.7-flash\nPlease retry in 3h3m14.247474799s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.7-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '10994s'}]}}
+During task with name 'model' and id '2a3256cf-3bb0-77d5-b785-d076e735c748'
+2026-10-14 20:56:45 - INFO - verdict {"action": "llm_agent", "action_applied_after_s": null, "applied": false, "detail": {"error": "GoogleRateLimitError(\"Error calling model 'gemini-3.7-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.7-flash\\\\nPlease retry in 3h3m14.247474799s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.7-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '10994s'}]}}\")", "reason": "agent_failed", "steps": 6, "tool_calls": [{"args": {}, "ok": true, "tool": "list_workloads"}, {"args": {"deployment": "uc1-deployment"}, "ok": true, "tool": "get_pods"}, {"args": {"deployment": "uc1-deployment"}, "ok": true, "tool": "get_deployment"}, {"args": {"container": null, "pod": "uc1-deployment-d7564bcd5-td77x", "previous": true, "tail_lines": 80}, "ok": true, "tool": "get_pod_logs"}, {"args": {"configmap": "uc1-config"}, "ok": true, "tool": "get_configmap"}, {"args": {"name_prefix": "uc1"}, "ok": true, "tool": "get_events"}]}, "duration_s": 122.7, "finished_at": "2026-10-14T20:56:45+00:00", "incident": "chaos/Deployment/uc1-deployment#0", "started_at": "2026-10-14T20:54:45+00:00", "status": "error"}
+INFO:     10.244.0.164:45084 - "POST /resolve HTTP/1.1" 200 OK
+2026-10-14 20:56:53 - INFO - request {"action": "bump_memory_limit", "context": {"alertname": "ChaosPodNotReady", "attempt": 0, "playbook": "oom-bump-small", "pod": "uc1-deployment-d7564bcd5-td77x"}, "incident": "chaos/Deployment/uc1-deployment#0", "params": {"increase_pct": 25, "max_limit_mib": 256, "timeout_s": 60}, "target": {"container": "uc1", "kind": "Deployment", "name": "uc1-deployment", "namespace": "chaos"}}
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 503 Service Unavailable"
+INFO:google_genai._api_client:Retrying google.genai._api_client.BaseApiClient._request_once in 1.33 seconds as it raised ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}.
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 429 Too Many Requests"
+2026-10-14 20:57:01 - ERROR - agent run failed
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.13/site-packages/langchain_google_genai/chat_models.py", line 4183, in _generate
+    response: GenerateContentResponse = self.client.models.generate_content(
+                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        **request,
+        ^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/google/genai/models.py", line 6301, in generate_content
+    return self._generate_content_with_continuation(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        model=model, contents=contents, config=parsed_config
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/google/genai/models.py", line 6129, in _generate_content_with_continuation
+    response = self._generate_content(
+        model=model, contents=contents, config=call_config
+    )
+  File "/usr/local/lib/python3.13/site-packages/google/genai/models.py", line 4668, in _generate_content
+    response = self._api_client.request(
+        'post', path, request_dict, http_options
+    )
+  File "/usr/local/lib/python3.13/site-packages/google/genai/_api_client.py", line 1824, in request
+    response = self._request(http_request, http_options, stream=False)
+  File "/usr/local/lib/python3.13/site-packages/google/genai/_api_client.py", line 1619, in _request
+    return retry(self._request_once, http_request, stream)  # type: ignore[no-any-return]
+  File "/usr/local/lib/python3.13/site-packages/tenacity/__init__.py", line 470, in __call__
+    do = self.iter(retry_state=retry_state)
+  File "/usr/local/lib/python3.13/site-packages/tenacity/__init__.py", line 371, in iter
+    result = action(retry_state)
+  File "/usr/local/lib/python3.13/site-packages/tenacity/__init__.py", line 413, in exc_check
+    raise retry_exc.reraise()
+          ~~~~~~~~~~~~~~~~~^^
+  File "/usr/local/lib/python3.13/site-packages/tenacity/__init__.py", line 184, in reraise
+    raise self.last_attempt.result()
+          ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/usr/local/lib/python3.13/concurrent/futures/_base.py", line 453, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/usr/local/lib/python3.13/concurrent/futures/_base.py", line 402, in __get_result
+    raise self._exception
+  File "/usr/local/lib/python3.13/site-packages/tenacity/__init__.py", line 473, in __call__
+    result = fn(*args, **kwargs)
+  File "/usr/local/lib/python3.13/site-packages/google/genai/_api_client.py", line 1598, in _request_once
+    errors.APIError.raise_for_response(response)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/google/genai/errors.py", line 173, in raise_for_response
+    cls.raise_error(response.status_code, response_json, response)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/google/genai/errors.py", line 202, in raise_error
+    raise ClientError(status_code, response_json, response)
+google.genai.errors.ClientError: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.7-flash\nPlease retry in 3h2m59.040915241s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.7-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '10979s'}]}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/agent.py", line 114, in investigate
+    for state in agent.stream({"messages": [{"role": "user", "content": prompt}]},
+                 ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                              config={"recursion_limit": 2 * max_steps},   # a step = model node + tools node, so this allows max_steps model calls
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                              stream_mode="values"):
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/langgraph/pregel/main.py", line 2669, in stream
+    for _ in runner.tick(
+             ~~~~~~~~~~~^
+        [t for t in loop.tasks.values() if not t.writes],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        schedule_task=loop.accept_push,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ):
+    ^
+  File "/usr/local/lib/python3.13/site-packages/langgraph/pregel/_runner.py", line 167, in tick
+    run_with_retry(
+    ~~~~~~~~~~~~~~^
+        t,
+        ^^
+    ...<10 lines>...
+        },
+        ^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/langgraph/pregel/_retry.py", line 71, in run_with_retry
+    return task.proc.invoke(task.input, config)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", line 656, in invoke
+    input = context.run(step.invoke, input, config, **kwargs)
+  File "/usr/local/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", line 400, in invoke
+    ret = self.func(*args, **kwargs)
+  File "/usr/local/lib/python3.13/site-packages/langchain/agents/factory.py", line 1261, in model_node
+    model_response = _execute_model_sync(request)
+  File "/usr/local/lib/python3.13/site-packages/langchain/agents/factory.py", line 1233, in _execute_model_sync
+    output = model_.invoke(messages)
+  File "/usr/local/lib/python3.13/site-packages/langchain_core/runnables/base.py", line 6018, in invoke
+    return self.bound.invoke(
+           ~~~~~~~~~~~~~~~~~^
+        input,
+        ^^^^^^
+        self._merge_configs(config),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **{**self.kwargs, **kwargs},
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/langchain_google_genai/chat_models.py", line 3584, in invoke
+    return super().invoke(input, config, stop=stop, **kwargs)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 488, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/usr/local/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1877, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1684, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 2022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/usr/local/lib/python3.13/site-packages/langchain_google_genai/chat_models.py", line 4187, in _generate
+    _handle_client_error(e, request)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/langchain_google_genai/chat_models.py", line 326, in _handle_client_error
+    raise error_type(msg) from e
+langchain_google_genai.chat_models.GoogleRateLimitError: Error calling model 'gemini-3.7-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.7-flash\nPlease retry in 3h2m59.040915241s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.7-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '10979s'}]}}
+During task with name 'model' and id 'bf32a60d-5000-4843-2ba8-29dc0787d1f0'
+2026-10-14 20:57:01 - INFO - verdict {"action": "llm_agent", "action_applied_after_s": null, "applied": false, "detail": {"error": "GoogleRateLimitError(\"Error calling model 'gemini-3.7-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.7-flash\\\\nPlease retry in 3h2m59.040915241s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.7-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '10979s'}]}}\")", "reason": "agent_failed", "steps": 0, "tool_calls": []}, "duration_s": 8.2, "finished_at": "2026-10-14T20:57:01+00:00", "incident": "chaos/Deployment/uc1-deployment#0", "started_at": "2026-10-14T20:56:53+00:00", "status": "error"}
+INFO:     10.244.0.164:33098 - "POST /resolve HTTP/1.1" 200 OK
+2026-10-14 20:57:39 - INFO - request {"action": "bump_memory_limit", "context": {"alertname": "ChaosPodCrashLooping", "attempt": 0, "playbook": "oom-bump-small", "pod": "uc1-deployment-d7564bcd5-td77x"}, "incident": "chaos/Deployment/uc1-deployment#0", "params": {"increase_pct": 25, "max_limit_mib": 256, "timeout_s": 60}, "target": {"container": "uc1", "kind": "Deployment", "name": "uc1-deployment", "namespace": "chaos"}}
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 429 Too Many Requests"
+INFO:google_genai._api_client:Retrying google.genai._api_client.BaseApiClient._request_once in 1.62 seconds as it raised ClientError: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.7-flash\nPlease retry in 3h2m20.717635008s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.7-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '10940s'}]}}.
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 429 Too Many Requests"
+2026-10-14 20:57:41 - ERROR - agent run failed
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.13/site-packages/langchain_google_genai/chat_models.py", line 4183, in _generate
+    response: GenerateContentResponse = self.client.models.generate_content(
+                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        **request,
+        ^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/google/genai/models.py", line 6301, in generate_content
+    return self._generate_content_with_continuation(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        model=model, contents=contents, config=parsed_config
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/google/genai/models.py", line 6129, in _generate_content_with_continuation
+    response = self._generate_content(
+        model=model, contents=contents, config=call_config
+    )
+  File "/usr/local/lib/python3.13/site-packages/google/genai/models.py", line 4668, in _generate_content
+    response = self._api_client.request(
+        'post', path, request_dict, http_options
+    )
+  File "/usr/local/lib/python3.13/site-packages/google/genai/_api_client.py", line 1824, in request
+    response = self._request(http_request, http_options, stream=False)
+  File "/usr/local/lib/python3.13/site-packages/google/genai/_api_client.py", line 1619, in _request
+    return retry(self._request_once, http_request, stream)  # type: ignore[no-any-return]
+  File "/usr/local/lib/python3.13/site-packages/tenacity/__init__.py", line 470, in __call__
+    do = self.iter(retry_state=retry_state)
+  File "/usr/local/lib/python3.13/site-packages/tenacity/__init__.py", line 371, in iter
+    result = action(retry_state)
+  File "/usr/local/lib/python3.13/site-packages/tenacity/__init__.py", line 413, in exc_check
+    raise retry_exc.reraise()
+          ~~~~~~~~~~~~~~~~~^^
+  File "/usr/local/lib/python3.13/site-packages/tenacity/__init__.py", line 184, in reraise
+    raise self.last_attempt.result()
+          ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/usr/local/lib/python3.13/concurrent/futures/_base.py", line 453, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/usr/local/lib/python3.13/concurrent/futures/_base.py", line 402, in __get_result
+    raise self._exception
+  File "/usr/local/lib/python3.13/site-packages/tenacity/__init__.py", line 473, in __call__
+    result = fn(*args, **kwargs)
+  File "/usr/local/lib/python3.13/site-packages/google/genai/_api_client.py", line 1598, in _request_once
+    errors.APIError.raise_for_response(response)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/google/genai/errors.py", line 173, in raise_for_response
+    cls.raise_error(response.status_code, response_json, response)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/google/genai/errors.py", line 202, in raise_error
+    raise ClientError(status_code, response_json, response)
+google.genai.errors.ClientError: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.7-flash\nPlease retry in 3h2m18.967907413s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.7-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '10938s'}]}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/agent.py", line 114, in investigate
+    for state in agent.stream({"messages": [{"role": "user", "content": prompt}]},
+                 ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                              config={"recursion_limit": 2 * max_steps},   # a step = model node + tools node, so this allows max_steps model calls
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                              stream_mode="values"):
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/langgraph/pregel/main.py", line 2669, in stream
+    for _ in runner.tick(
+             ~~~~~~~~~~~^
+        [t for t in loop.tasks.values() if not t.writes],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        schedule_task=loop.accept_push,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ):
+    ^
+  File "/usr/local/lib/python3.13/site-packages/langgraph/pregel/_runner.py", line 167, in tick
+    run_with_retry(
+    ~~~~~~~~~~~~~~^
+        t,
+        ^^
+    ...<10 lines>...
+        },
+        ^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/langgraph/pregel/_retry.py", line 71, in run_with_retry
+    return task.proc.invoke(task.input, config)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", line 656, in invoke
+    input = context.run(step.invoke, input, config, **kwargs)
+  File "/usr/local/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", line 400, in invoke
+    ret = self.func(*args, **kwargs)
+  File "/usr/local/lib/python3.13/site-packages/langchain/agents/factory.py", line 1261, in model_node
+    model_response = _execute_model_sync(request)
+  File "/usr/local/lib/python3.13/site-packages/langchain/agents/factory.py", line 1233, in _execute_model_sync
+    output = model_.invoke(messages)
+  File "/usr/local/lib/python3.13/site-packages/langchain_core/runnables/base.py", line 6018, in invoke
+    return self.bound.invoke(
+           ~~~~~~~~~~~~~~~~~^
+        input,
+        ^^^^^^
+        self._merge_configs(config),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **{**self.kwargs, **kwargs},
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/langchain_google_genai/chat_models.py", line 3584, in invoke
+    return super().invoke(input, config, stop=stop, **kwargs)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 488, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/usr/local/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1877, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1684, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 2022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/usr/local/lib/python3.13/site-packages/langchain_google_genai/chat_models.py", line 4187, in _generate
+    _handle_client_error(e, request)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/langchain_google_genai/chat_models.py", line 326, in _handle_client_error
+    raise error_type(msg) from e
+langchain_google_genai.chat_models.GoogleRateLimitError: Error calling model 'gemini-3.7-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.7-flash\nPlease retry in 3h2m18.967907413s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.7-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '10938s'}]}}
+During task with name 'model' and id '664b28b8-06d1-6364-50d0-ab03166b5fc4'
+2026-10-14 20:57:41 - INFO - verdict {"action": "llm_agent", "action_applied_after_s": null, "applied": false, "detail": {"error": "GoogleRateLimitError(\"Error calling model 'gemini-3.7-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.7-flash\\\\nPlease retry in 3h2m18.967907413s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.7-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '10938s'}]}}\")", "reason": "agent_failed", "steps": 0, "tool_calls": []}, "duration_s": 2.1, "finished_at": "2026-10-14T20:57:41+00:00", "incident": "chaos/Deployment/uc1-deployment#0", "started_at": "2026-10-14T20:57:39+00:00", "status": "error"}
+INFO:     10.244.0.164:39060 - "POST /resolve HTTP/1.1" 200 OK
+2026-10-14 20:57:56 - INFO - request {"action": "bump_memory_limit", "context": {"alertname": "ChaosPodNotReady", "attempt": 0, "playbook": "oom-bump-small", "pod": "uc1-deployment-d7564bcd5-td77x"}, "incident": "chaos/Deployment/uc1-deployment#0", "params": {"increase_pct": 25, "max_limit_mib": 256, "timeout_s": 60}, "target": {"container": "uc1", "kind": "Deployment", "name": "uc1-deployment", "namespace": "chaos"}}
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 429 Too Many Requests"
+INFO:google_genai._api_client:Retrying google.genai._api_client.BaseApiClient._request_once in 1.47 seconds as it raised ClientError: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.7-flash\nPlease retry in 3h2m2.954100601s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.7-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '10922s'}]}}.
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 429 Too Many Requests"
+2026-10-14 20:57:58 - ERROR - agent run failed
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.13/site-packages/langchain_google_genai/chat_models.py", line 4183, in _generate
+    response: GenerateContentResponse = self.client.models.generate_content(
+                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        **request,
+        ^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/google/genai/models.py", line 6301, in generate_content
+    return self._generate_content_with_continuation(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        model=model, contents=contents, config=parsed_config
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/google/genai/models.py", line 6129, in _generate_content_with_continuation
+    response = self._generate_content(
+        model=model, contents=contents, config=call_config
+    )
+  File "/usr/local/lib/python3.13/site-packages/google/genai/models.py", line 4668, in _generate_content
+    response = self._api_client.request(
+        'post', path, request_dict, http_options
+    )
+  File "/usr/local/lib/python3.13/site-packages/google/genai/_api_client.py", line 1824, in request
+    response = self._request(http_request, http_options, stream=False)
+  File "/usr/local/lib/python3.13/site-packages/google/genai/_api_client.py", line 1619, in _request
+    return retry(self._request_once, http_request, stream)  # type: ignore[no-any-return]
+  File "/usr/local/lib/python3.13/site-packages/tenacity/__init__.py", line 470, in __call__
+    do = self.iter(retry_state=retry_state)
+  File "/usr/local/lib/python3.13/site-packages/tenacity/__init__.py", line 371, in iter
+    result = action(retry_state)
+  File "/usr/local/lib/python3.13/site-packages/tenacity/__init__.py", line 413, in exc_check
+    raise retry_exc.reraise()
+          ~~~~~~~~~~~~~~~~~^^
+  File "/usr/local/lib/python3.13/site-packages/tenacity/__init__.py", line 184, in reraise
+    raise self.last_attempt.result()
+          ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/usr/local/lib/python3.13/concurrent/futures/_base.py", line 453, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/usr/local/lib/python3.13/concurrent/futures/_base.py", line 402, in __get_result
+    raise self._exception
+  File "/usr/local/lib/python3.13/site-packages/tenacity/__init__.py", line 473, in __call__
+    result = fn(*args, **kwargs)
+  File "/usr/local/lib/python3.13/site-packages/google/genai/_api_client.py", line 1598, in _request_once
+    errors.APIError.raise_for_response(response)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/google/genai/errors.py", line 173, in raise_for_response
+    cls.raise_error(response.status_code, response_json, response)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/google/genai/errors.py", line 202, in raise_error
+    raise ClientError(status_code, response_json, response)
+google.genai.errors.ClientError: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.7-flash\nPlease retry in 3h2m1.320027209s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-3.7-flash', 'location': 'global'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '10921s'}]}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/agent.py", line 114, in investigate
+    for state in agent.stream({"messages": [{"role": "user", "content": prompt}]},
+                 ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                              config={"recursion_limit": 2 * max_steps},   # a step = model node + tools node, so this allows max_steps model calls
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                              stream_mode="values"):
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/langgraph/pregel/main.py", line 2669, in stream
+    for _ in runner.tick(
+             ~~~~~~~~~~~^
+        [t for t in loop.tasks.values() if not t.writes],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        schedule_task=loop.accept_push,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ):
+    ^
+  File "/usr/local/lib/python3.13/site-packages/langgraph/pregel/_runner.py", line 167, in tick
+    run_with_retry(
+    ~~~~~~~~~~~~~~^
+        t,
+        ^^
+    ...<10 lines>...
+        },
+        ^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/langgraph/pregel/_retry.py", line 71, in run_with_retry
+    return task.proc.invoke(task.input, config)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", line 656, in invoke
+    input = context.run(step.invoke, input, config, **kwargs)
+  File "/usr/local/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", line 400, in invoke
+    ret = self.func(*args, **kwargs)
+  File "/usr/local/lib/python3.13/site-packages/langchain/agents/factory.py", line 1261, in model_node
+    model_response = _execute_model_sync(request)
+  File "/usr/local/lib/python3.13/site-packages/langchain/agents/factory.py", line 1233, in _execute_model_sync
+    output = model_.invoke(messages)
+  File "/usr/local/lib/python3.13/site-packages/langchain_core/runnables/base.py", line 6018, in invoke
+    return self.bound.invoke(
+           ~~~~~~~~~~~~~~~~~^
+        input,
+        ^^^^^^
+        self._merge_configs(config),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **{**self.kwargs, **kwargs},
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/langchain_google_genai/chat_models.py", line 3584, in invoke
+    return super().invoke(input, config, stop=stop, **kwargs)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 488, in invoke
+    self.generate_prompt(
+    ~~~~~~~~~~~~~~~~~~~~^
+        [self._convert_input(input)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ).generations[0][0],
+    ^
+  File "/usr/local/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1877, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 1684, in generate
+    self._generate_with_cache(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        m,
+        ^^
+    ...<2 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", line 2022, in _generate_with_cache
+    result = self._generate(
+        messages, stop=stop, run_manager=run_manager, **kwargs
+    )
+  File "/usr/local/lib/python3.13/site-packages/langchain_google_genai/chat_models.py", line 4187, in _generate
+    _handle_client_error(e, request)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/langchain_google_genai/chat_models.py", line 326, in _handle_client_error
+    raise error_type(msg) from e
+langchain_google_genai.chat_models.GoogleRateLimitError: Error calling model 'gemini-3.7-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.7-flash\nPlease retry in 3h2m1.320027209s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-3.7-flash', 'location': 'global'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '10921s'}]}}
+During task with name 'model' and id '568f9df2-3348-e97a-6fbd-e4c852578b19'
+2026-10-14 20:57:58 - INFO - verdict {"action": "llm_agent", "action_applied_after_s": null, "applied": false, "detail": {"error": "GoogleRateLimitError(\"Error calling model 'gemini-3.7-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.7-flash\\\\nPlease retry in 3h2m1.320027209s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-3.7-flash', 'location': 'global'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '10921s'}]}}\")", "reason": "agent_failed", "steps": 0, "tool_calls": []}, "duration_s": 2.0, "finished_at": "2026-10-14T20:57:58+00:00", "incident": "chaos/Deployment/uc1-deployment#0", "started_at": "2026-10-14T20:57:56+00:00", "status": "error"}
+INFO:     10.244.0.164:38094 - "POST /resolve HTTP/1.1" 200 OK
