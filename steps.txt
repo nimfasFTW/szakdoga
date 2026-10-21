@@ -53,6 +53,10 @@ helm get values monitoring -n monitoring -a
 kubectl rollout restart statefulset/alertmanager-monitoring-kube-prometheus-alertmanager -n monitoring
 kubectl logs -n monitoring alertmanager-monitoring-kube-prometheus-alertmanager-0 -c config-reloader
 
+tar --exclude=".venv" --exclude=".git" -czvf szakdoga.zip szakdoga/
+tar --exclude=".venv" -czvf /mnt/e/InformationTechnology/dispatcher.tar.gz dispatcher/
+
+
 TODO:
 - CHECK IF THE DB PATHS IN THE UC main.py FILE NEED my-svc.my-namespace.svc.cluster-domain.example
         SHOULD MEAN NO PROBLEM, SINCE THEY ARE IN THE SAME NAMESPACE.   EG.  url="http://deter-resolver:8000/resolve" SHOULD WORK

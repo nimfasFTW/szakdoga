@@ -18,8 +18,9 @@ logger = logging.getLogger("dispatcher")
 
 
 class ResolverClient:
-    def __init__(self, base_url: str, timeout_s: float = 180.0, http: Any = requests) -> None:
-        self._url = f"{base_url.rstrip('/')}/resolve"
+    def __init__(self, base_url: str, timeout_s: float = 180.0, http: Any = requests,
+                 path: str = "/resolve") -> None:
+        self._url = f"{base_url.rstrip('/')}/{path.lstrip('/')}"
         self._timeout = timeout_s
         self._http = http
 
@@ -55,7 +56,31 @@ def run_fast_loop(result: dict, resolver: ResolverClient, attempts: AttemptStore
         guard.release(key)
 
 
+def run_escalation(result: dict, llm_resolver: ResolverClient, attempts: AttemptStore,
+                   llm_attempts: AttemptStore, guard: IncidentGuard) -> dict:
+    """Same contract as run_fast_loop, but for the LLM agent (table miss).
+
+         resolved   -> incident over: forget BOTH the deterministic and the LLM attempts
+         unresolved -> an LLM run was spent: counts against the LLM budget
+         error      -> nothing is known to have run: the budget does not advance"""
+    key = result["workload"]
+    try:
+        verdict = llm_resolver.resolve(result["escalation_request"])
+        status = verdict.get("status")
+        if status == "resolved":
+            attempts.reset(key)
+            llm_attempts.reset(key)
+        elif status == "unresolved":
+            llm_attempts.increment(key)
+        logger.info("verdict %s", json.dumps({"workload": key, "path": "llm",
+                                              "incident": result["escalation_request"]["incident"],
+                                              "verdict": verdict}, sort_keys=True))
+        return verdict
+    finally:
+        guard.release(key)
+
+
 def on_no_match(result: dict) -> None:
-    """The deterministic SUT has nothing more to try. The hybrid SUT will route to the LLM agent here."""
-    logger.warning("no playbook for workload=%s (%s); deterministic path gives up",
+    """Nothing to run: deterministic mode, or the LLM budget for this incident is spent."""
+    logger.warning("no playbook for workload=%s (%s); giving up",
                    result.get("workload"), result.get("reason"))

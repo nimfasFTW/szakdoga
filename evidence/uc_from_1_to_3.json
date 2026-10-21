@@ -1,0 +1,151 @@
+{
+  "incident": "chaos/Deployment/uc3-client#llm0",
+  "path": "llm",
+  "verdict": {
+    "action": "llm_agent",
+    "action_applied_after_s": 20.1,
+    "applied": true,
+    "detail": {
+      "changes": [
+        {
+          "change": "uc3-client-config[UC3_DB_PORT]: '5090' -> '5000'",
+          "tool": "set_configmap_value"
+        },
+        {
+          "change": "uc3-client",
+          "tool": "restart_deployment"
+        }
+      ],
+      "llm": {
+        "input_tokens": 64576,
+        "model": "gemini-3.7-flash",
+        "output_tokens": 1549,
+        "steps": 10
+      },
+      "summary": "ROOT CAUSE: The `uc3-client-config` ConfigMap had `UC3_DB_PORT` set to 5090 instead of 5000, causing the client's readiness probe checks to `uc3-server-service` to time out.\nACTIONS: Updated `UC3_DB_PORT` to \"5000\" in ConfigMap `uc3-client-config` and restarted Deployment `uc3-client`.\nOUTCOME: healthy",
+      "tool_calls": [
+        {
+          "args": {},
+          "ok": true,
+          "tool": "list_workloads"
+        },
+        {
+          "args": {
+            "deployment": "uc3-client"
+          },
+          "ok": true,
+          "tool": "get_pods"
+        },
+        {
+          "args": {
+            "deployment": "uc3-client"
+          },
+          "ok": true,
+          "tool": "get_deployment"
+        },
+        {
+          "args": {
+            "name_prefix": "uc3-client"
+          },
+          "ok": true,
+          "tool": "get_events"
+        },
+        {
+          "args": {
+            "container": null,
+            "pod": "uc3-client-6456fdf75c-2jnvl",
+            "previous": false,
+            "tail_lines": 80
+          },
+          "ok": true,
+          "tool": "get_pod_logs"
+        },
+        {
+          "args": {},
+          "ok": true,
+          "tool": "list_services"
+        },
+        {
+          "args": {
+            "configmap": "uc3-client-config"
+          },
+          "ok": true,
+          "tool": "get_configmap"
+        },
+        {
+          "args": {
+            "configmap": "uc3-server-config"
+          },
+          "ok": true,
+          "tool": "get_configmap"
+        },
+        {
+          "args": {
+            "deployment": "uc3-server"
+          },
+          "ok": true,
+          "tool": "get_deployment"
+        },
+        {
+          "args": {
+            "configmap": "uc3-client-config",
+            "key": "UC3_DB_PORT",
+            "value": "5000"
+          },
+          "ok": true,
+          "tool": "set_configmap_value"
+        },
+        {
+          "args": {
+            "deployment": "uc3-client"
+          },
+          "ok": true,
+          "tool": "restart_deployment"
+        },
+        {
+          "args": {
+            "deployment": "uc3-client",
+            "wait_s": 60
+          },
+          "ok": true,
+          "tool": "check_health"
+        },
+        {
+          "args": {
+            "deployment": "uc3-client"
+          },
+          "ok": true,
+          "tool": "get_pods"
+        },
+        {
+          "args": {
+            "deployment": "uc3-client",
+            "wait_s": 30
+          },
+          "ok": true,
+          "tool": "check_health"
+        },
+        {
+          "args": {
+            "container": null,
+            "pod": "uc3-client-868fdb77cb-d2jj8",
+            "previous": false,
+            "tail_lines": 80
+          },
+          "ok": true,
+          "tool": "get_pod_logs"
+        }
+      ],
+      "verification": {
+        "healthy": true,
+        "waited_s": 10
+      }
+    },
+    "duration_s": 65.1,
+    "finished_at": "2026-10-21T23:27:29+00:00",
+    "incident": "chaos/Deployment/uc3-client#llm0",
+    "started_at": "2026-10-21T23:26:24+00:00",
+    "status": "resolved"
+  },
+  "workload": "chaos/Deployment/uc3-client"
+}

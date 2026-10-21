@@ -1,0 +1,20 @@
+nimfas@banyek:~/szakdoga$ kubectl logs -n control deploy/deter-resolver -f
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2026-10-21 23:21:14 - INFO - request {"action": "bump_memory_limit", "context": {"alertname": "ChaosPodCrashLooping", "attempt": 0, "playbook": "oom-bump-small", "pod": "uc1-deployment-d7564bcd5-sjqb4"}, "incident": "chaos/Deployment/uc1-deployment#0", "params": {"increase_pct": 25, "max_limit_mib": 256, "timeout_s": 60}, "target": {"container": "uc1", "kind": "Deployment", "name": "uc1-deployment", "namespace": "chaos"}}
+2026-10-21 23:21:28 - INFO - verdict {"action": "bump_memory_limit", "action_applied_after_s": 0.0, "applied": true, "detail": {"capped": false, "container": "uc1", "from_mib": 100, "to_mib": 125, "verification": {"healthy": true, "waited_s": 14.1}}, "duration_s": 14.1, "finished_at": "2026-10-21T23:21:28+00:00", "incident": "chaos/Deployment/uc1-deployment#0", "started_at": "2026-10-21T23:21:14+00:00", "status": "resolved"}
+INFO:     10.244.0.25:54928 - "POST /resolve HTTP/1.1" 200 OK
+2026-10-21 23:22:10 - INFO - request {"action": "bump_memory_limit", "context": {"alertname": "ChaosPodCrashLooping", "attempt": 0, "playbook": "oom-bump-small", "pod": "uc2-deployment-6579d84cb8-8v4ss"}, "incident": "chaos/Deployment/uc2-deployment#0", "params": {"increase_pct": 25, "max_limit_mib": 256, "timeout_s": 60}, "target": {"container": "uc2", "kind": "Deployment", "name": "uc2-deployment", "namespace": "chaos"}}
+2026-10-21 23:23:10 - INFO - verdict {"action": "bump_memory_limit", "action_applied_after_s": 0.0, "applied": true, "detail": {"capped": false, "container": "uc2", "from_mib": 100, "to_mib": 125, "verification": {"healthy": false, "last": {"ready": false, "restarts": 6, "rolled_out": false}, "waited_s": 60.2}}, "duration_s": 60.2, "finished_at": "2026-10-21T23:23:10+00:00", "incident": "chaos/Deployment/uc2-deployment#0", "started_at": "2026-10-21T23:22:10+00:00", "status": "unresolved"}
+INFO:     10.244.0.25:49482 - "POST /resolve HTTP/1.1" 200 OK
+2026-10-21 23:23:18 - INFO - request {"action": "bump_memory_limit", "context": {"alertname": "ChaosPodCrashLooping", "attempt": 1, "playbook": "oom-bump-large", "pod": "uc2-deployment-77944fdc48-dbn62"}, "incident": "chaos/Deployment/uc2-deployment#1", "params": {"increase_pct": 100, "max_limit_mib": 256, "timeout_s": 60}, "target": {"container": "uc2", "kind": "Deployment", "name": "uc2-deployment", "namespace": "chaos"}}
+2026-10-21 23:23:30 - INFO - verdict {"action": "bump_memory_limit", "action_applied_after_s": 0.0, "applied": true, "detail": {"capped": false, "container": "uc2", "from_mib": 125, "to_mib": 250, "verification": {"healthy": true, "waited_s": 12.0}}, "duration_s": 12.0, "finished_at": "2026-10-21T23:23:30+00:00", "incident": "chaos/Deployment/uc2-deployment#1", "started_at": "2026-10-21T23:23:18+00:00", "status": "resolved"}
+INFO:     10.244.0.25:47336 - "POST /resolve HTTP/1.1" 200 OK
+2026-10-21 23:31:52 - INFO - request {"action": "wait_and_verify", "context": {"alertname": "ChaosPodImagePullFailure", "attempt": 0, "playbook": "imagepull-wait", "pod": "uc6-6c56c9988b-777xr"}, "incident": "chaos/Deployment/uc6#0", "params": {"wait_s": 60}, "target": {"container": "nginx", "kind": "Deployment", "name": "uc6", "namespace": "chaos"}}
+2026-10-21 23:32:52 - INFO - verdict {"action": "wait_and_verify", "action_applied_after_s": null, "applied": false, "detail": {"verification": {"healthy": false, "last": {"ready": false, "restarts": 0, "rolled_out": true}, "waited_s": 60.2}, "waiting_for": "self-recovery"}, "duration_s": 60.2, "finished_at": "2026-10-21T23:32:52+00:00", "incident": "chaos/Deployment/uc6#0", "started_at": "2026-10-21T23:31:52+00:00", "status": "unresolved"}
+INFO:     10.244.0.25:35696 - "POST /resolve HTTP/1.1" 200 OK
+
+
+

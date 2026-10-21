@@ -33,12 +33,17 @@ class Config:
 
 
 def handle_alert(alert: dict, cfg: Config, inspector: Inspector,
-                 table: LookupTable, attempts: AttemptStore, guard: IncidentGuard) -> dict[str, Any]:
+                 table: LookupTable, attempts: AttemptStore, guard: IncidentGuard,
+                 llm_attempts: AttemptStore | None = None,
+                 llm_max_attempts: int = 2) -> dict[str, Any]:
     """Decide what to do about one alert. Never executes anything.
 
     outcome == "fast_loop": the incident lock for the workload is HELD on return, and the caller
-    must hand the result to dispatch.run_fast_loop(), which releases it. Every other outcome
-    leaves the lock free."""
+    must hand the result to dispatch.run_fast_loop(), which releases it.
+    outcome == "escalate": (only when `llm_attempts` is given) the table missed and the LLM budget
+    for this incident is not spent. The lock is HELD on return; the caller must hand the result to
+    dispatch.run_escalation(), which releases it.
+    Every other outcome leaves the lock free."""
     labels = alert.get("labels", {})
     alertname = labels.get("alertname", "")
     namespace = labels.get("namespace", "")
@@ -90,15 +95,33 @@ def handle_alert(alert: dict, cfg: Config, inspector: Inspector,
         "reason": decision.reason,
         "facts": dataclasses.asdict(facts),   # restart_count, exit_code, ready, ... for the data lake
     }
+    target = {"namespace": facts.namespace, "kind": facts.workload_kind,
+              "name": facts.workload_name, "container": facts.container}
     if pb:
         result["action_request"] = {
             "incident": f"{key}#{attempt}",
             "action": pb.action,
             "params": dict(pb.params),
-            "target": {"namespace": facts.namespace, "kind": facts.workload_kind,
-                       "name": facts.workload_name, "container": facts.container},
+            "target": target,
             "context": {"playbook": pb.id, "alertname": alertname, "pod": pod, "attempt": attempt},
         }
+    elif llm_attempts is not None:
+        llm_attempt = llm_attempts.get(key)
+        if llm_attempt < llm_max_attempts:
+            # Table miss, hybrid/LLM mode: keep the lock, the LLM agent works on this incident.
+            result["outcome"] = "escalate"
+            result["escalation_request"] = {
+                "incident": f"{key}#llm{llm_attempt}",
+                "target": target,
+                "context": {"alertname": alertname, "pod": pod,
+                            "attempt": attempt,              # deterministic actions already taken
+                            "llm_attempt": llm_attempt,
+                            "signature": result["signature"], "facts": result["facts"],
+                            "reason": decision.reason},
+            }
+        else:
+            result["reason"] += f"; LLM budget exhausted ({llm_attempt}/{llm_max_attempts})"
+            guard.release(key)
     else:
         guard.release(key)   # nothing to execute, so nothing to hold
     logger.info("decision %s", json.dumps(result, sort_keys=True))
