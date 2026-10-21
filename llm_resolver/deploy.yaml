@@ -10,7 +10,7 @@ data:
   VERIFY_TIMEOUT_S: "60"   # how long the final verification waits for the workload after the agent changed something
   AGENT_MAX_STEPS: "20"    # max LLM calls per incident (one step = one model call, usually followed by tool calls)
   LLM_MODEL: "gemini-3.7-flash"
-  LLM_RPM: "4"             # max model calls per minute (free tier = 5). Set "0" to disable once you have a paid key
+  LLM_RPM: "20"             # max model calls per minute (free tier = 5). Set "0" to disable once you have a paid key
 
 ---
 

@@ -44,6 +44,10 @@ kubectl logs -n chaos deploy/dispatcher -f
 # https://console.mistral.ai/home?profile_dialog=api-keys
 
 
+kubectl logs -n chaos deploy/dispatcher -f
+kubectl logs -n chaos deploy/llm-resolver -f
+kubectl logs -n chaos deploy/deter-resolver -f
+
 
 TODO:
 - CHECK IF THE DB PATHS IN THE UC main.py FILE NEED my-svc.my-namespace.svc.cluster-domain.example

@@ -73,10 +73,10 @@ class KubeCluster:
     # strategic merge: lists with a merge key (containers, env, service ports) are merged by that
     # key instead of replaced, and a key set to null is removed
     def patch_deployment(self, namespace: str, name: str, body: dict) -> None:
-        self._apps.patch_namespaced_deployment(name, namespace, body, _content_type=STRATEGIC_MERGE)
+        self._apps.patch_namespaced_deployment(name, namespace, body)
 
     def patch_configmap(self, namespace: str, name: str, body: dict) -> None:
-        self._core.patch_namespaced_config_map(name, namespace, body, _content_type=STRATEGIC_MERGE)
+        self._core.patch_namespaced_config_map(name, namespace, body)
 
     def patch_service(self, namespace: str, name: str, body: dict) -> None:
-        self._core.patch_namespaced_service(name, namespace, body, _content_type=STRATEGIC_MERGE)
+        self._core.patch_namespaced_service(name, namespace, body)
