@@ -14,14 +14,14 @@ alertmanager:
         - namespace
         - pod
       group_wait: 0s
-      group_interval: 0s
+      group_interval: 1s
       repeat_interval: 1m
       receiver: dispatcher-webhook
 
     receivers:
       - name: dispatcher-webhook
         webhook_configs:
-          - url: http://dispatcher.chaos.svc.cluster.local:8000/alert
+          - url: http://dispatcher.control.svc.cluster.local:8000/alert
             send_resolved: true
 
       - name: "null"

@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: deter-resolver-config
-  namespace: chaos
+  namespace: control
 data:
   WATCHED_NAMESPACES: "chaos"
   VERIFY_STABLE_S: "10"   # a fixed workload must stay ready, with no restarts, for this long
@@ -14,7 +14,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: deter-resolver
-  namespace: chaos
+  namespace: control
 spec:
   replicas: 1 
   selector:
@@ -41,7 +41,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: deter-resolver
-  namespace: chaos
+  namespace: control
 spec:
   selector:
     app: deter-resolver

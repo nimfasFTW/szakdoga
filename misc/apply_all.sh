@@ -48,7 +48,8 @@ p3=$!
 wait_all "PUSH" "$p1" "$p2" "$p3"
 
 # APPLY
-kubectl apply -f "$SCRIPT_DIR/../namespace.yaml"
+kubectl apply -f "$SCRIPT_DIR/../namespace_chaos.yaml"
+kubectl apply -f "$SCRIPT_DIR/../namespace_control.yaml"
 kubectl apply -f "$SCRIPT_DIR/../prom/promrules.yaml"
 kubectl apply -f "$SCRIPT_DIR/../llm_resolver/" &
 p1=$!
@@ -60,11 +61,11 @@ p3=$!
 wait_all "APPLY" "$p1" "$p2" "$p3"
 
 # RESTART
-kubectl rollout restart deployment -n chaos llm-resolver &
+kubectl rollout restart deployment -n control llm-resolver &
 p1=$!
-kubectl rollout restart deployment -n chaos deter-resolver &
+kubectl rollout restart deployment -n control deter-resolver &
 p2=$!
-kubectl rollout restart deployment -n chaos dispatcher &
+kubectl rollout restart deployment -n control dispatcher &
 p3=$!
 
 wait_all "RESTART" "$p1" "$p2" "$p3"

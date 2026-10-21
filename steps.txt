@@ -35,19 +35,23 @@ kubectl port-forward -n monitoring svc/monitoring-kube-prometheus-alertmanager 9
 
 kubectl port-forward -n monitoring svc/monitoring-grafana 3000:80
 
-kubectl logs -n chaos deploy/dispatcher -f
+helm upgrade monitoring prometheus-community/kube-prometheus-stack --namespace monitoring -f ../misc/values.yaml
 
+helm install monitoring prometheus-community/kube-prometheus-stack --namespace monitoring --values prom/values.yaml
 
- helm upgrade monitoring prometheus-community/kube-prometheus-stack --namespace monitoring -f ../misc/values.yaml
 
 # https://docs.langchain.com/oss/python/integrations/chat/mistralai
 # https://console.mistral.ai/home?profile_dialog=api-keys
 
 
-kubectl logs -n chaos deploy/dispatcher -f
-kubectl logs -n chaos deploy/llm-resolver -f
-kubectl logs -n chaos deploy/deter-resolver -f
+kubectl logs -n control deploy/dispatcher -f
+kubectl logs -n control deploy/llm-resolver -f
+kubectl logs -n control deploy/deter-resolver -f
 
+helm get values monitoring -n monitoring -a
+
+kubectl rollout restart statefulset/alertmanager-monitoring-kube-prometheus-alertmanager -n monitoring
+kubectl logs -n monitoring alertmanager-monitoring-kube-prometheus-alertmanager-0 -c config-reloader
 
 TODO:
 - CHECK IF THE DB PATHS IN THE UC main.py FILE NEED my-svc.my-namespace.svc.cluster-domain.example
