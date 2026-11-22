@@ -1,0 +1,36 @@
+# UC9 fault injection: apply this to start the load, delete it to stop the load.
+# Open-loop generator: sends UC9_RATE requests per second to the uc9 Service, however slowly it answers.
+# No CPU limit on purpose: the generator itself must never trigger the CPU saturation alert.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: uc9-load-config
+  namespace: chaos
+data:
+  UC_CODE: "uc9_load"
+  UC9_TARGET_URL: "http://uc9:8080/work"
+  UC9_RATE: "10"
+  UC9_DURATION_S: "0"        # 0 = until deleted
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uc9-load
+  namespace: chaos
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: uc9-load
+  template:
+    metadata:
+      labels:
+        app: uc9-load
+    spec:
+      containers:
+        - name: uc9-load
+          image: nimfasftw/szakdoga_chaos:latest
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: uc9-load-config

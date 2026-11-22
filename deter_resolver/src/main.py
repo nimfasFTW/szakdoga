@@ -20,6 +20,8 @@ CONFIG = ResolverConfig(
     namespaces=frozenset(os.getenv("WATCHED_NAMESPACES", "chaos").split(",")),
     stable_s=float(os.getenv("VERIFY_STABLE_S", "10")),
     poll_s=float(os.getenv("VERIFY_POLL_S", "2")),
+    prometheus_url=os.getenv("PROMETHEUS_URL") or None,
+    max_cpu_util=float(os.getenv("MAX_CPU_UTIL", "0.9")),
 )
 CLOCK = Clock()
 

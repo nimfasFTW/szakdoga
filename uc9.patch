@@ -1,0 +1,1072 @@
+diff -ruN orig/chaos/k8s_yamls/uc9.yaml new/chaos/k8s_yamls/uc9.yaml
+--- orig/chaos/k8s_yamls/uc9.yaml	1970-01-01 00:00:00.000000000 +0000
++++ new/chaos/k8s_yamls/uc9.yaml	2026-11-22 22:17:21.728994179 +0000
+@@ -0,0 +1,70 @@
++# UC9: heavy load, no autoscaler.
++# This manifest is the HEALTHY starting state: one replica, a CPU limit, no HorizontalPodAutoscaler.
++# The fault is injected by applying uc9_load.yaml (delete it to stop the load).
++#
++# Capacity of one pod: every /work request burns ~50 ms of CPU time (UC9_WORK_MS) and the CPU limit is
++# 250m, so one pod serves at most ~4.5 req/s (the Flask overhead adds a few ms per request).
++# The load generator sends 10 req/s:
++#   1 replica  -> ~220 % of the capacity  (saturated)
++#   2 replicas -> ~110 %                  (still saturated)
++#   3 replicas -> ~73 % of the limit      (healthy)
++# Recalibrate UC9_WORK_MS / the CPU limit / UC9_RATE together if you change one of them.
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: uc9-config
++  namespace: chaos
++data:
++  UC_CODE: "uc9"
++  APP_PORT: "8080"
++  UC9_WORK_MS: "50"
++  UC9_MAX_IN_FLIGHT: "8"      # few concurrent requests: less thread contention, latency stays below the 5 s client timeout
++---
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: uc9
++  namespace: chaos
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: uc9
++  template:
++    metadata:
++      labels:
++        app: uc9
++    spec:
++      containers:
++        - name: uc9
++          image: nimfasftw/szakdoga_chaos:latest
++          imagePullPolicy: Always
++          envFrom:
++            - configMapRef:
++                name: uc9-config
++          ports:
++            - containerPort: 8080
++          resources:
++            requests:
++              cpu: 100m
++              memory: 128Mi
++            limits:
++              cpu: 250m
++              memory: 256Mi
++          # No readinessProbe on purpose. With one, the saturated (CPU-throttled) pod misses its probes,
++          # drops out of the Service, stops getting load, recovers, and flaps. Its CPU average then never
++          # stays above the alert threshold, and ChaosPodNotReady fires instead of ChaosPodCPUSaturated.
++          # UC9 is about capacity, so the pod must stay in the Service and simply be slow.
++---
++apiVersion: v1
++kind: Service
++metadata:
++  name: uc9
++  namespace: chaos
++spec:
++  selector:
++    app: uc9
++  ports:
++    - protocol: TCP
++      port: 8080
++      targetPort: 8080
+diff -ruN orig/chaos/k8s_yamls/uc9_load.yaml new/chaos/k8s_yamls/uc9_load.yaml
+--- orig/chaos/k8s_yamls/uc9_load.yaml	1970-01-01 00:00:00.000000000 +0000
++++ new/chaos/k8s_yamls/uc9_load.yaml	2026-11-22 21:30:36.708853626 +0000
+@@ -0,0 +1,36 @@
++# UC9 fault injection: apply this to start the load, delete it to stop the load.
++# Open-loop generator: sends UC9_RATE requests per second to the uc9 Service, however slowly it answers.
++# No CPU limit on purpose: the generator itself must never trigger the CPU saturation alert.
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: uc9-load-config
++  namespace: chaos
++data:
++  UC_CODE: "uc9_load"
++  UC9_TARGET_URL: "http://uc9:8080/work"
++  UC9_RATE: "10"
++  UC9_DURATION_S: "0"        # 0 = until deleted
++---
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: uc9-load
++  namespace: chaos
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: uc9-load
++  template:
++    metadata:
++      labels:
++        app: uc9-load
++    spec:
++      containers:
++        - name: uc9-load
++          image: nimfasftw/szakdoga_chaos:latest
++          imagePullPolicy: Always
++          envFrom:
++            - configMapRef:
++                name: uc9-load-config
+diff -ruN orig/chaos/src/main.py new/chaos/src/main.py
+--- orig/chaos/src/main.py	2026-10-12 00:19:13.000000000 +0000
++++ new/chaos/src/main.py	2026-11-22 22:17:21.795172076 +0000
+@@ -3,6 +3,7 @@
+ import logging
+ import threading
+ import time
++from concurrent.futures import ThreadPoolExecutor
+ from flask import Flask, jsonify
+ 
+ UC1_ENV_CODE = "uc1"
+@@ -25,6 +26,15 @@
+ UC8_HEARTBEAT_STALE_AFTER = 5  # seconds without a heartbeat -> db worker is considered stuck
+ UC8_ADMIN_PORT = 9000
+ 
++UC9_ENV_CODE = "uc9"            # the application that gets overloaded
++UC9_LOAD_ENV_CODE = "uc9_load"  # the load generator
++UC9_DEFAULT_WORK_MS = 50        # CPU time one /work request burns
++UC9_DEFAULT_MAX_IN_FLIGHT = 8   # above this the app sheds load instead of queueing forever
++
++uc9_in_flight = 0
++uc9_lock = threading.Lock()
++uc9_last_shed_log = 0.0
++
+ uc8_stuck = threading.Event()          # set -> the db worker is stuck
+ uc8_last_heartbeat = time.time()
+ 
+@@ -52,6 +62,10 @@
+         uc8_server()
+     elif uc_code == UC8_ENV_CODE_CLIENT:
+         uc8_client()
++    elif uc_code == UC9_ENV_CODE:
++        uc9()
++    elif uc_code == UC9_LOAD_ENV_CODE:
++        uc9_load()
+     elif uc_code == UC7_ENV_CODE or uc_code == UC5_ENV_CODE or uc_code == UC6_ENV_CODE:
+         port = int(os.getenv("APP_PORT", "8080"))
+         app.run(host="0.0.0.0", port=port)
+@@ -62,7 +76,11 @@
+ def readiness():
+ 
+     uc_code = os.environ["UC_CODE"]
+-    
++
++    if uc_code == UC9_ENV_CODE:
++        # always ready (the manifest has no readiness probe; this is only for manual checks)
++        return jsonify(status="ready"), 200
++
+     if uc_code == UC8_ENV_CODE_SERVER:
+         stale_for = time.time() - uc8_last_heartbeat
+         if stale_for > UC8_HEARTBEAT_STALE_AFTER:
+@@ -217,5 +235,89 @@
+     logger.info(f"Starting UC8 client, configured DB: {os.environ['UC8_DB_HOST']}:{os.environ['UC8_DB_PORT']}")
+     app.run(host="0.0.0.0", port=port)
+ 
++
++# ---------------------------------------------------------------------------------------------
++# UC9: heavy load, no autoscaler
++# ---------------------------------------------------------------------------------------------
++def _burn_cpu(ms: float):
++    """Busy-wait for `ms` milliseconds of *CPU time* of this thread. Counting CPU time (not wall
++    time) keeps the cost of a request independent of the speed of the machine, and a CPU limit
++    (cgroup throttling) then stretches the wall time of a request, like on a real overloaded pod."""
++    end = time.thread_time() + ms / 1000.0
++    while time.thread_time() < end:
++        pass
++
++@app.route("/work")
++def uc9_work():
++    global uc9_in_flight, uc9_last_shed_log
++    if os.environ.get("UC_CODE") != UC9_ENV_CODE:
++        return jsonify(error="not found"), 404
++    work_ms = float(os.getenv("UC9_WORK_MS", UC9_DEFAULT_WORK_MS))
++    max_in_flight = int(os.getenv("UC9_MAX_IN_FLIGHT", UC9_DEFAULT_MAX_IN_FLIGHT))
++
++    with uc9_lock:
++        shed = uc9_in_flight >= max_in_flight
++        if not shed:
++            uc9_in_flight += 1
++        in_flight = uc9_in_flight
++    if shed:
++        # fail fast: do not let abandoned requests pile up and keep the CPU busy after the load is gone
++        now = time.time()
++        if now - uc9_last_shed_log >= 5:
++            uc9_last_shed_log = now
++            logger.warning(f"Overloaded: {in_flight} requests in flight (max {max_in_flight}), "
++                           f"shedding load with HTTP 503; the CPU is the bottleneck")
++        return jsonify(error="overloaded"), 503
++    try:
++        _burn_cpu(work_ms)
++        return jsonify(status="ok"), 200
++    finally:
++        with uc9_lock:
++            uc9_in_flight -= 1
++
++def uc9():
++    port = int(os.getenv("APP_PORT", "8080"))
++    logger.info(f"Starting UC9 application on port {port} "
++                f"(work {os.getenv('UC9_WORK_MS', UC9_DEFAULT_WORK_MS)} ms CPU per request)")
++    app.run(host="0.0.0.0", port=port, threaded=True)
++
++def uc9_load():
++    """Open-loop load generator: sends UC9_RATE requests per second no matter how fast the target
++    answers (a closed loop would adapt to the capacity of the target and never overload it)."""
++    url = os.environ["UC9_TARGET_URL"]
++    rate = float(os.getenv("UC9_RATE", "10"))
++    duration = float(os.getenv("UC9_DURATION_S", "0"))   # 0 = forever
++    pool = ThreadPoolExecutor(max_workers=int(os.getenv("UC9_MAX_WORKERS", "100")))
++    stats = {"ok": 0, "shed": 0, "error": 0}
++    stats_lock = threading.Lock()
++
++    def one_request():
++        try:
++            r = requests.get(url, timeout=5)    # new connection each time: kube-proxy balances per connection
++            key = "ok" if r.status_code == 200 else ("shed" if r.status_code == 503 else "error")
++        except Exception:
++            key = "error"
++        with stats_lock:
++            stats[key] += 1
++
++    logger.info(f"UC9 load generator: {rate} req/s to {url}" + (f" for {duration}s" if duration else ""))
++    interval = 1.0 / rate
++    started = next_send = last_report = time.monotonic()
++    while True:
++        now = time.monotonic()
++        if duration and now - started >= duration:
++            logger.info("UC9 load generator: duration over, idling")
++            while True:
++                time.sleep(3600)
++        pool.submit(one_request)
++        next_send += interval
++        if now - last_report >= 10:
++            last_report = now
++            with stats_lock:
++                snapshot = dict(stats)
++                stats["ok"] = stats["shed"] = stats["error"] = 0
++            logger.info(f"last 10s: ok={snapshot['ok']} shed={snapshot['shed']} error={snapshot['error']}")
++        time.sleep(max(0.0, next_send - time.monotonic()))
++
+ if __name__ == "__main__":
+     main()
+\ No newline at end of file
+diff -ruN orig/deter_resolver/deploy.yaml new/deter_resolver/deploy.yaml
+--- orig/deter_resolver/deploy.yaml	2026-10-22 00:24:03.000000000 +0000
++++ new/deter_resolver/deploy.yaml	2026-11-22 21:31:28.393327372 +0000
+@@ -7,6 +7,10 @@
+   WATCHED_NAMESPACES: "chaos"
+   VERIFY_STABLE_S: "10"   # a fixed workload must stay ready, with no restarts, for this long
+   VERIFY_POLL_S: "2"
++  # CPU saturation criterion of the verification (UC-9): a pod above MAX_CPU_UTIL of its CPU limit is not healthy.
++  # Leave PROMETHEUS_URL empty to disable it.
++  PROMETHEUS_URL: "http://monitoring-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090"
++  MAX_CPU_UTIL: "0.9"
+ 
+ ---
+ 
+diff -ruN orig/deter_resolver/src/actions.py new/deter_resolver/src/actions.py
+--- orig/deter_resolver/src/actions.py	2026-10-12 14:16:27.000000000 +0000
++++ new/deter_resolver/src/actions.py	2026-11-22 21:31:20.781746521 +0000
+@@ -90,6 +90,24 @@
+                           "capped": new == cap_mib and math.ceil(current * (1 + pct / 100)) > cap_mib})
+ 
+ 
++def scale_deployment(cluster: Cluster, req: ActionRequest) -> ActionOutcome:
++    """Add replicas, up to a pre-approved ceiling (the horizontal counterpart of bump_memory_limit)."""
++    add = int(req.params["add_replicas"])
++    cap = int(req.params["max_replicas"])
++    if add < 1:
++        raise ActionError("bad_params", add_replicas=add)
++
++    dep = cluster.get_deployment(req.namespace, req.name)
++    current = int(dep["spec"].get("replicas", 1))
++    new = min(current + add, cap)
++    if new <= current:   # already at the pre-approved ceiling: this playbook has nothing left to give
++        return ActionOutcome(False, None, {"reason": "ceiling_reached", "current_replicas": current,
++                                           "max_replicas": cap})
++    cluster.patch_deployment(req.namespace, req.name, {"spec": {"replicas": new}})
++    return ActionOutcome(True, float(req.params.get("timeout_s", 90)),
++                         {"from_replicas": current, "to_replicas": new, "capped": current + add > cap})
++
++
+ def wait_and_verify(cluster: Cluster, req: ActionRequest) -> ActionOutcome:
+     """Deliberately does nothing: gives Kubernetes's own retry/backoff a bounded chance."""
+     return ActionOutcome(False, float(req.params.get("wait_s", 60)), {"waiting_for": "self-recovery"})
+@@ -97,5 +115,6 @@
+ 
+ ACTIONS: dict[str, Callable[[Cluster, ActionRequest], ActionOutcome]] = {
+     "bump_memory_limit": bump_memory_limit,
++    "scale_deployment": scale_deployment,
+     "wait_and_verify": wait_and_verify,
+ }
+diff -ruN orig/deter_resolver/src/main.py new/deter_resolver/src/main.py
+--- orig/deter_resolver/src/main.py	2026-10-12 00:16:31.000000000 +0000
++++ new/deter_resolver/src/main.py	2026-11-22 21:31:28.393188199 +0000
+@@ -20,6 +20,8 @@
+     namespaces=frozenset(os.getenv("WATCHED_NAMESPACES", "chaos").split(",")),
+     stable_s=float(os.getenv("VERIFY_STABLE_S", "10")),
+     poll_s=float(os.getenv("VERIFY_POLL_S", "2")),
++    prometheus_url=os.getenv("PROMETHEUS_URL") or None,
++    max_cpu_util=float(os.getenv("MAX_CPU_UTIL", "0.9")),
+ )
+ CLOCK = Clock()
+ 
+diff -ruN orig/deter_resolver/src/resolver.py new/deter_resolver/src/resolver.py
+--- orig/deter_resolver/src/resolver.py	2026-10-12 00:16:36.000000000 +0000
++++ new/deter_resolver/src/resolver.py	2026-11-22 21:31:28.393000610 +0000
+@@ -4,10 +4,12 @@
+ import logging
+ from dataclasses import dataclass
+ from datetime import datetime, timezone
++from typing import Optional
+ 
+ from actions import ACTIONS, ActionError, ActionRequest
+ from clock import Clock
+ from cluster import Cluster
++from saturation import PrometheusSaturation
+ from verify import wait_until_healthy
+ 
+ logger = logging.getLogger("deter_resolver")
+@@ -18,6 +20,8 @@
+     namespaces: frozenset[str]
+     stable_s: float = 10.0
+     poll_s: float = 2.0
++    prometheus_url: Optional[str] = None   # enables the CPU saturation criterion of the verification
++    max_cpu_util: float = 0.9              # a pod above this share of its CPU limit is not healthy
+ 
+ 
+ def _utcnow() -> str:
+@@ -55,7 +59,9 @@
+     if outcome.verify_timeout_s is None:
+         return verdict("unresolved", outcome.applied, applied_after, **outcome.detail)
+ 
++    saturation = PrometheusSaturation(cfg.prometheus_url) if cfg.prometheus_url else None
+     result = wait_until_healthy(cluster, req.namespace, req.name, timeout_s=outcome.verify_timeout_s,
+-                                stable_s=cfg.stable_s, poll_s=cfg.poll_s, clock=clock)
++                                stable_s=cfg.stable_s, poll_s=cfg.poll_s, clock=clock,
++                                saturation=saturation, max_cpu_util=cfg.max_cpu_util)
+     return verdict("resolved" if result["healthy"] else "unresolved", outcome.applied, applied_after,
+                    **outcome.detail, verification=result)
+diff -ruN orig/deter_resolver/src/saturation.py new/deter_resolver/src/saturation.py
+--- orig/deter_resolver/src/saturation.py	1970-01-01 00:00:00.000000000 +0000
++++ new/deter_resolver/src/saturation.py	2026-11-22 21:31:20.772328260 +0000
+@@ -0,0 +1,52 @@
++"""CPU saturation of a workload, read from Prometheus.
++
++Why this exists: 'rolled out + ready + no restarts' (verify.py) is also true for a pod that is
++overloaded but alive. For a load problem (UC-9) that definition would call 'did nothing' a success.
++So a workload only counts as healthy if none of its pods uses more than `max_cpu_util` of its CPU limit.
++
++Same expression family as the ChaosPodCPUSaturated alert, but evaluated by us per verification poll,
++for the pods of ONE Deployment. We look at the workload's resource usage, not at whether the alert
++has cleared (the alert lags behind and its pod names change with every rollout).
++
++Best effort by design: if Prometheus cannot be reached, or the pods have no CPU limit / no samples yet,
++the answer is None ('unknown') and the CPU criterion is skipped, so it cannot break the other use cases.
++"""
++from __future__ import annotations
++
++import logging
++import re
++from typing import Any, Optional, Sequence
++
++import requests
++
++logger = logging.getLogger("deter_resolver.saturation")
++
++_SAFE = re.compile(r"^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$")   # Kubernetes object names; keeps the PromQL injection-free
++
++
++class PrometheusSaturation:
++    def __init__(self, base_url: str, window_s: int = 30, timeout_s: float = 3.0, http: Any = requests):
++        self._url = base_url.rstrip("/") + "/api/v1/query"
++        self._window_s = window_s
++        self._timeout_s = timeout_s
++        self._http = http
++
++    def max_cpu_utilisation(self, namespace: str, pods: Sequence[str]) -> Optional[float]:
++        """Highest (CPU usage / CPU limit) over the given pods, or None if unknown."""
++        if not pods or not _SAFE.match(namespace) or not all(_SAFE.match(p) for p in pods):
++            return None
++        pod_re = "|".join(pods)
++        query = (
++            f'max(sum by (namespace, pod, container) (rate(container_cpu_usage_seconds_total'
++            f'{{namespace="{namespace}", pod=~"{pod_re}", container!="", container!="POD"}}[{self._window_s}s]))'
++            f' / on (namespace, pod, container) '
++            f'kube_pod_container_resource_limits{{namespace="{namespace}", resource="cpu"}})'
++        )
++        try:
++            r = self._http.get(self._url, params={"query": query}, timeout=self._timeout_s)
++            r.raise_for_status()
++            result = r.json()["data"]["result"]
++            return float(result[0]["value"][1]) if result else None
++        except Exception as e:   # must never abort a verification
++            logger.warning("saturation query failed: %r", e)
++            return None
+diff -ruN orig/deter_resolver/src/verify.py new/deter_resolver/src/verify.py
+--- orig/deter_resolver/src/verify.py	2026-10-12 00:16:36.000000000 +0000
++++ new/deter_resolver/src/verify.py	2026-11-22 21:31:20.782717203 +0000
+@@ -12,6 +12,7 @@
+ 
+ import logging
+ from dataclasses import dataclass
++from typing import Optional, Protocol
+ 
+ from clock import Clock
+ from cluster import Cluster
+@@ -19,11 +20,16 @@
+ logger = logging.getLogger("deter_resolver.verify")
+ 
+ 
++class Saturation(Protocol):
++    def max_cpu_utilisation(self, namespace: str, pods: "list[str]") -> Optional[float]: ...
++
++
+ @dataclass(frozen=True)
+ class Health:
+     rolled_out: bool
+     ready: bool
+     restarts: int
++    pods: tuple = ()     # names of the pods behind the Deployment (for the saturation query)
+ 
+ 
+ def _selector(match_labels: dict) -> str:
+@@ -43,11 +49,12 @@
+     pods = cluster.list_pods(namespace, _selector(dep["spec"]["selector"].get("matchLabels", {})))
+     restarts = sum(cs.get("restartCount", 0)
+                    for p in pods for cs in (p.get("status", {}).get("containerStatuses") or []))
+-    return Health(rolled_out, ready, restarts)
++    return Health(rolled_out, ready, restarts, tuple(p["metadata"]["name"] for p in pods))
+ 
+ 
+ def wait_until_healthy(cluster: Cluster, namespace: str, name: str, *, timeout_s: float,
+-                       stable_s: float, poll_s: float, clock: Clock) -> dict:
++                       stable_s: float, poll_s: float, clock: Clock,
++                       saturation: Optional[Saturation] = None, max_cpu_util: float = 0.9) -> dict:
+     start = clock.now()
+     stable_since = None
+     baseline = 0
+@@ -59,15 +66,21 @@
+         except Exception as e:   # a transient API error must not abort the verification
+             logger.warning("health read failed: %r", e)
+             last = None
+-        if last is not None and last.ready:
++        util = None
++        if last is not None and last.ready and saturation is not None:
++            util = saturation.max_cpu_utilisation(namespace, list(last.pods))
++        saturated = util is not None and util > max_cpu_util
++        if last is not None and last.ready and not saturated:
+             if stable_since is None or last.restarts > baseline:
+                 stable_since, baseline = t, last.restarts   # (re)start the stability clock
+             if t - stable_since >= stable_s:
+-                return {"healthy": True, "waited_s": round(t - start, 1)}
++                return {"healthy": True, "waited_s": round(t - start, 1),
++                        **({} if util is None else {"max_cpu_utilisation": round(util, 2)})}
+         else:
+             stable_since = None
+         if t - start >= timeout_s:
+             return {"healthy": False, "waited_s": round(t - start, 1),
+                     "last": None if last is None else
+-                    {"rolled_out": last.rolled_out, "ready": last.ready, "restarts": last.restarts}}
++                    {"rolled_out": last.rolled_out, "ready": last.ready, "restarts": last.restarts,
++                     **({} if util is None else {"max_cpu_utilisation": round(util, 2)})}}
+         clock.sleep(poll_s)
+diff -ruN orig/dispatcher/src/lookup.py new/dispatcher/src/lookup.py
+--- orig/dispatcher/src/lookup.py	2026-10-21 23:16:05.000000000 +0000
++++ new/dispatcher/src/lookup.py	2026-11-22 21:30:51.912026151 +0000
+@@ -23,7 +23,7 @@
+ from signature import Signature
+ 
+ MATCH_FIELDS = ("alertname", "waiting_reason", "termination_reason", "attempt")
+-KNOWN_ACTIONS = ("bump_memory_limit", "wait_and_verify")
++KNOWN_ACTIONS = ("bump_memory_limit", "wait_and_verify", "scale_deployment")
+ 
+ 
+ class TableError(ValueError):
+diff -ruN orig/dispatcher/src/main.py new/dispatcher/src/main.py
+--- orig/dispatcher/src/main.py	2026-10-22 00:24:03.000000000 +0000
++++ new/dispatcher/src/main.py	2026-11-22 21:30:51.911768058 +0000
+@@ -24,7 +24,8 @@
+ CONFIG = Config(
+     namespaces=frozenset(os.getenv("WATCHED_NAMESPACES", "chaos").split(",")),
+     pod_alerts=frozenset(os.getenv(
+-        "POD_ALERTS", "ChaosPodCrashLooping,ChaosPodImagePullFailure,ChaosPodNotReady").split(",")),
++        "POD_ALERTS",
++        "ChaosPodCrashLooping,ChaosPodImagePullFailure,ChaosPodNotReady,ChaosPodCPUSaturated").split(",")),
+ )
+ # deterministic: table only, a miss gives up.  hybrid: table first, a miss goes to the LLM agent.
+ # llm: no table, every actionable alert goes to the LLM agent.
+diff -ruN orig/dispatcher/src/playbooks.yaml new/dispatcher/src/playbooks.yaml
+--- orig/dispatcher/src/playbooks.yaml	2026-10-21 23:16:05.000000000 +0000
++++ new/dispatcher/src/playbooks.yaml	2026-11-22 21:31:03.899989440 +0000
+@@ -39,6 +39,26 @@
+ 
+   # attempt >= 1: still failing after the wait -> miss -> escalation
+ 
++  # ---- Load family: UC-9 ------------------------------------------------------------
++  # CPU saturation is a capacity problem, not a crash: the pod is Running and Ready, so only the
++  # alert name tells it apart. The remedy is to add replicas, up to a pre-approved ceiling.
++  # `waiting_reason/termination_reason: null` = the pod never crashed. Without them this entry would be
++  # ambiguous with the OOM ones (equal specificity), and a pod that is saturated AND was OOM-killed is
++  # not a plain load problem anyway: it should miss and be escalated.
++  # Every tier waits for the load to spread (the CPU metric of the old pod needs a while to drop),
++  # hence the longer verification window.
++  - id: cpu-scale-out
++    match: { alertname: ChaosPodCPUSaturated, waiting_reason: null, termination_reason: null, attempt: 0 }
++    action: scale_deployment
++    params: { add_replicas: 2, max_replicas: 5, timeout_s: 90 }
++
++  - id: cpu-scale-out-more
++    match: { alertname: ChaosPodCPUSaturated, waiting_reason: null, termination_reason: null, attempt: 1 }
++    action: scale_deployment
++    params: { add_replicas: 2, max_replicas: 5, timeout_s: 90 }
++
++  # attempt >= 2: exhausted -> miss -> escalation
++
+   # ---- Deliberately NOT here ---------------------------------------------------------
+   # UC-3 (bad config), UC-7 (dependency), UC-8 (transitive): the pod is Running and merely
+   # NotReady (no waiting_reason, no termination_reason), or crashes with termination
+diff -ruN orig/llm_resolver/deploy.yaml new/llm_resolver/deploy.yaml
+--- orig/llm_resolver/deploy.yaml	2026-10-22 00:24:03.000000000 +0000
++++ new/llm_resolver/deploy.yaml	2026-11-22 21:31:52.412123805 +0000
+@@ -8,6 +8,9 @@
+   VERIFY_STABLE_S: "10"   # a fixed workload must stay ready, with no restarts, for this long
+   VERIFY_POLL_S: "2"
+   VERIFY_TIMEOUT_S: "60"   # how long the final verification waits for the workload after the agent changed something
++  PROMETHEUS_URL: "http://monitoring-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090"   # CPU saturation criterion + get_cpu_usage tool; empty = off
++  MAX_CPU_UTIL: "0.9"       # a pod above this share of its CPU limit is not healthy
++  MAX_REPLICAS: "5"         # ceiling for the scale_deployment tool (same as the playbook)
+   AGENT_MAX_STEPS: "20"    # max LLM calls per incident (one step = one model call, usually followed by tool calls)
+   LLM_MODEL: "gemini-3.7-flash"
+   LLM_RPM: "20"             # max model calls per minute (free tier = 5). Set "0" to disable once you have a paid key
+diff -ruN orig/llm_resolver/src/main.py new/llm_resolver/src/main.py
+--- orig/llm_resolver/src/main.py	2026-10-22 00:24:03.000000000 +0000
++++ new/llm_resolver/src/main.py	2026-11-22 21:31:52.411998637 +0000
+@@ -23,6 +23,9 @@
+     poll_s=float(os.getenv("VERIFY_POLL_S", "2")),
+     verify_timeout_s=float(os.getenv("VERIFY_TIMEOUT_S", "60")),
+     max_steps=int(os.getenv("AGENT_MAX_STEPS", "20")),
++    prometheus_url=os.getenv("PROMETHEUS_URL") or None,
++    max_cpu_util=float(os.getenv("MAX_CPU_UTIL", "0.9")),
++    max_replicas=int(os.getenv("MAX_REPLICAS", "5")),
+ )
+ CLOCK = Clock()
+ 
+diff -ruN orig/llm_resolver/src/resolver.py new/llm_resolver/src/resolver.py
+--- orig/llm_resolver/src/resolver.py	2026-10-22 00:24:03.000000000 +0000
++++ new/llm_resolver/src/resolver.py	2026-11-22 21:31:52.411840942 +0000
+@@ -17,6 +17,7 @@
+ from agent import AgentRun
+ from clock import Clock
+ from cluster import Cluster
++from saturation import PrometheusSaturation
+ from tools import Toolkit
+ from verify import wait_until_healthy
+ 
+@@ -32,6 +33,9 @@
+     poll_s: float = 2.0
+     verify_timeout_s: float = 60.0   # how long the final verification waits after the agent changed something
+     max_steps: int = 20              # model calls the agent may use per incident
++    prometheus_url: Optional[str] = None   # enables the CPU saturation criterion and the get_cpu_usage tool
++    max_cpu_util: float = 0.9
++    max_replicas: int = 5            # ceiling for scale_deployment (same as the deterministic playbook)
+ 
+ 
+ class ResolveError(Exception):
+@@ -108,7 +112,9 @@
+     except ResolveError as e:
+         return verdict("error", reason=e.reason, **e.detail)
+ 
+-    toolkit = Toolkit(cluster, req.namespace, stable_s=cfg.stable_s, poll_s=cfg.poll_s, clock=clock)
++    saturation = PrometheusSaturation(cfg.prometheus_url) if cfg.prometheus_url else None
++    toolkit = Toolkit(cluster, req.namespace, stable_s=cfg.stable_s, poll_s=cfg.poll_s, clock=clock,
++                      saturation=saturation, max_cpu_util=cfg.max_cpu_util, max_replicas=cfg.max_replicas)
+     try:
+         run = investigate(build_prompt(req), toolkit.tools, cfg.max_steps)
+     except Exception as e:   # could not even start (bad credentials, model init, ...): nothing was attempted
+@@ -125,7 +131,8 @@
+     # on its own), just ask whether the workload is healthy right now, i.e. one stability window.
+     timeout = cfg.verify_timeout_s if applied else cfg.stable_s + 2 * cfg.poll_s
+     result = wait_until_healthy(cluster, req.namespace, req.name, timeout_s=timeout,
+-                                stable_s=cfg.stable_s, poll_s=cfg.poll_s, clock=clock)
++                                stable_s=cfg.stable_s, poll_s=cfg.poll_s, clock=clock,
++                                saturation=saturation, max_cpu_util=cfg.max_cpu_util)
+     # the moment the LAST change landed: a fix that needs several steps (e.g. ConfigMap + restart) is in place then
+     applied_after = round(toolkit.last_change_at - t0, 1) if toolkit.last_change_at is not None else None
+ 
+diff -ruN orig/llm_resolver/src/saturation.py new/llm_resolver/src/saturation.py
+--- orig/llm_resolver/src/saturation.py	1970-01-01 00:00:00.000000000 +0000
++++ new/llm_resolver/src/saturation.py	2026-11-22 21:31:28.397378437 +0000
+@@ -0,0 +1,52 @@
++"""CPU saturation of a workload, read from Prometheus.
++
++Why this exists: 'rolled out + ready + no restarts' (verify.py) is also true for a pod that is
++overloaded but alive. For a load problem (UC-9) that definition would call 'did nothing' a success.
++So a workload only counts as healthy if none of its pods uses more than `max_cpu_util` of its CPU limit.
++
++Same expression family as the ChaosPodCPUSaturated alert, but evaluated by us per verification poll,
++for the pods of ONE Deployment. We look at the workload's resource usage, not at whether the alert
++has cleared (the alert lags behind and its pod names change with every rollout).
++
++Best effort by design: if Prometheus cannot be reached, or the pods have no CPU limit / no samples yet,
++the answer is None ('unknown') and the CPU criterion is skipped, so it cannot break the other use cases.
++"""
++from __future__ import annotations
++
++import logging
++import re
++from typing import Any, Optional, Sequence
++
++import requests
++
++logger = logging.getLogger("llm_resolver.saturation")
++
++_SAFE = re.compile(r"^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$")   # Kubernetes object names; keeps the PromQL injection-free
++
++
++class PrometheusSaturation:
++    def __init__(self, base_url: str, window_s: int = 30, timeout_s: float = 3.0, http: Any = requests):
++        self._url = base_url.rstrip("/") + "/api/v1/query"
++        self._window_s = window_s
++        self._timeout_s = timeout_s
++        self._http = http
++
++    def max_cpu_utilisation(self, namespace: str, pods: Sequence[str]) -> Optional[float]:
++        """Highest (CPU usage / CPU limit) over the given pods, or None if unknown."""
++        if not pods or not _SAFE.match(namespace) or not all(_SAFE.match(p) for p in pods):
++            return None
++        pod_re = "|".join(pods)
++        query = (
++            f'max(sum by (namespace, pod, container) (rate(container_cpu_usage_seconds_total'
++            f'{{namespace="{namespace}", pod=~"{pod_re}", container!="", container!="POD"}}[{self._window_s}s]))'
++            f' / on (namespace, pod, container) '
++            f'kube_pod_container_resource_limits{{namespace="{namespace}", resource="cpu"}})'
++        )
++        try:
++            r = self._http.get(self._url, params={"query": query}, timeout=self._timeout_s)
++            r.raise_for_status()
++            result = r.json()["data"]["result"]
++            return float(result[0]["value"][1]) if result else None
++        except Exception as e:   # must never abort a verification
++            logger.warning("saturation query failed: %r", e)
++            return None
+diff -ruN orig/llm_resolver/src/tools.py new/llm_resolver/src/tools.py
+--- orig/llm_resolver/src/tools.py	2026-10-22 00:24:03.000000000 +0000
++++ new/llm_resolver/src/tools.py	2026-11-22 21:31:52.411340503 +0000
+@@ -23,7 +23,7 @@
+ 
+ from clock import Clock
+ from cluster import Cluster
+-from verify import wait_until_healthy
++from verify import Saturation, wait_until_healthy
+ 
+ logger = logging.getLogger("llm_resolver.tools")
+ 
+@@ -204,7 +204,11 @@
+     """One instance per incident. `tools` goes to the agent; the rest is the paper trail."""
+ 
+     def __init__(self, cluster: Cluster, namespace: str, *, stable_s: float, poll_s: float,
+-                 clock: Clock, max_wait_s: float = 90.0) -> None:
++                 clock: Clock, max_wait_s: float = 90.0, saturation: Optional[Saturation] = None,
++                 max_cpu_util: float = 0.9, max_replicas: int = 5) -> None:
++        self.saturation = saturation
++        self.max_cpu_util = max_cpu_util
++        self.max_replicas = max_replicas   # pre-approved ceiling, the same as in the deterministic playbook
+         self.cluster = cluster
+         self.namespace = namespace
+         self.stable_s = stable_s
+@@ -331,13 +335,39 @@
+                 out.append(summarize_service(svc, pods))
+             return _j(out)
+ 
++        @reg
++        def get_cpu_usage(deployment: str) -> str:
++            """Show how much of its CPU limit the busiest pod of a Deployment is using right now (1.0 = 100%).
++
++            Use it for slowness or overload: a pod at its CPU limit is throttled and answers slowly
++            even though it is Running and Ready. The value is averaged over the last ~30 seconds, so
++            it lags behind a change by up to that long.
++
++            Args:
++                deployment: Name of the Deployment.
++            """
++            if self.saturation is None:
++                return "CPU metrics are not available in this environment."
++            dep = c.get_deployment(ns, deployment)
++            selector = dep["spec"]["selector"].get("matchLabels", {})
++            pods = [p["metadata"]["name"] for p in c.list_pods(ns, selector_string(selector))]
++            util = self.saturation.max_cpu_utilisation(ns, pods)
++            if util is None:
++                return ("No CPU data: the pods have no CPU limit, are too new to have samples, or "
++                        "Prometheus is unreachable.")
++            limits = [(ct.get("resources") or {}).get("limits", {}).get("cpu")
++                      for ct in _pod_spec(dep)["containers"]]
++            return _j({"deployment": deployment, "replicas": dep["spec"].get("replicas", 1),
++                       "cpu_limits": limits, "max_pod_cpu_utilisation": round(util, 2)})
++
+         # ============================ check ============================
+         @reg
+         def check_health(deployment: str, wait_s: int = 30) -> str:
+             """Check whether a Deployment is healthy, waiting up to wait_s seconds for it to become so.
+ 
+-            Healthy means: rollout finished, every replica Ready, and no container restarted for a
+-            stable period. This is the same check that judges your work when you finish, so
++            Healthy means: rollout finished, every replica Ready, no container restarted for a
++            stable period, and no pod uses more than 90% of its CPU limit. This is the same check
++            that judges your work when you finish, so
+             healthy=false means the problem is NOT fixed yet. Call it after every change.
+ 
+             Args:
+@@ -346,7 +376,8 @@
+             """
+             wait = max(0.0, min(float(wait_s), self.max_wait_s))
+             return _j(wait_until_healthy(c, ns, deployment, timeout_s=wait, stable_s=self.stable_s,
+-                                         poll_s=self.poll_s, clock=self.clock))
++                                         poll_s=self.poll_s, clock=self.clock,
++                                         saturation=self.saturation, max_cpu_util=self.max_cpu_util))
+ 
+         # ============================ write ============================
+         @reg
+@@ -461,6 +492,30 @@
+             return f"Service {service} patched with {json.dumps(patch)}. Use list_services to confirm the result."
+ 
+         @reg
++        def scale_deployment(deployment: str, replicas: int) -> str:
++            """Set the number of replicas of a Deployment (horizontal scaling).
++
++            Use it when the pods are healthy but too few to carry the load. The load is spread over
++            Ready replicas by the Service. There is a ceiling on the replica count.
++
++            Args:
++                deployment: Name of the Deployment.
++                replicas: New number of replicas (at least 1).
++            """
++            replicas = int(replicas)
++            if replicas < 1:
++                raise ValueError("replicas must be at least 1")
++            if replicas > self.max_replicas:
++                raise ValueError(f"replicas must not exceed {self.max_replicas} (pre-approved ceiling)")
++            current = int(c.get_deployment(ns, deployment)["spec"].get("replicas", 1))
++            if current == replicas:
++                return f"No change: {deployment} already has {replicas} replicas."
++            c.patch_deployment(ns, deployment, {"spec": {"replicas": replicas}})
++            self._changed("scale_deployment", f"{deployment}: replicas {current} -> {replicas}")
++            return (f"Replicas of {deployment} changed from {current} to {replicas}. New pods take a "
++                    f"while to start; use check_health to wait.")
++
++        @reg
+         def restart_deployment(deployment: str) -> str:
+             """Restart all pods of a Deployment with a rolling restart (like 'kubectl rollout restart').
+ 
+@@ -477,5 +532,6 @@
+             return f"Rolling restart of {deployment} started."
+ 
+         return [list_workloads, get_deployment, get_pods, get_pod_logs, get_events, get_configmap,
+-                list_services, check_health, set_configmap_value, set_container_image,
+-                set_container_resources, set_container_env, patch_service, restart_deployment]
++                list_services, get_cpu_usage, check_health, set_configmap_value, set_container_image,
++                set_container_resources, set_container_env, patch_service, scale_deployment,
++                restart_deployment]
+diff -ruN orig/llm_resolver/src/verify.py new/llm_resolver/src/verify.py
+--- orig/llm_resolver/src/verify.py	2026-10-22 00:24:03.000000000 +0000
++++ new/llm_resolver/src/verify.py	2026-11-22 21:31:52.410281284 +0000
+@@ -12,6 +12,7 @@
+ 
+ import logging
+ from dataclasses import dataclass
++from typing import Optional, Protocol
+ 
+ from clock import Clock
+ from cluster import Cluster
+@@ -19,11 +20,16 @@
+ logger = logging.getLogger("llm_resolver.verify")
+ 
+ 
++class Saturation(Protocol):
++    def max_cpu_utilisation(self, namespace: str, pods: "list[str]") -> Optional[float]: ...
++
++
+ @dataclass(frozen=True)
+ class Health:
+     rolled_out: bool
+     ready: bool
+     restarts: int
++    pods: tuple = ()     # names of the pods behind the Deployment (for the saturation query)
+ 
+ 
+ def _selector(match_labels: dict) -> str:
+@@ -43,11 +49,12 @@
+     pods = cluster.list_pods(namespace, _selector(dep["spec"]["selector"].get("matchLabels", {})))
+     restarts = sum(cs.get("restartCount", 0)
+                    for p in pods for cs in (p.get("status", {}).get("containerStatuses") or []))
+-    return Health(rolled_out, ready, restarts)
++    return Health(rolled_out, ready, restarts, tuple(p["metadata"]["name"] for p in pods))
+ 
+ 
+ def wait_until_healthy(cluster: Cluster, namespace: str, name: str, *, timeout_s: float,
+-                       stable_s: float, poll_s: float, clock: Clock) -> dict:
++                       stable_s: float, poll_s: float, clock: Clock,
++                       saturation: Optional[Saturation] = None, max_cpu_util: float = 0.9) -> dict:
+     start = clock.now()
+     stable_since = None
+     baseline = 0
+@@ -59,15 +66,21 @@
+         except Exception as e:   # a transient API error must not abort the verification
+             logger.warning("health read failed: %r", e)
+             last = None
+-        if last is not None and last.ready:
++        util = None
++        if last is not None and last.ready and saturation is not None:
++            util = saturation.max_cpu_utilisation(namespace, list(last.pods))
++        saturated = util is not None and util > max_cpu_util
++        if last is not None and last.ready and not saturated:
+             if stable_since is None or last.restarts > baseline:
+                 stable_since, baseline = t, last.restarts   # (re)start the stability clock
+             if t - stable_since >= stable_s:
+-                return {"healthy": True, "waited_s": round(t - start, 1)}
++                return {"healthy": True, "waited_s": round(t - start, 1),
++                        **({} if util is None else {"max_cpu_utilisation": round(util, 2)})}
+         else:
+             stable_since = None
+         if t - start >= timeout_s:
+             return {"healthy": False, "waited_s": round(t - start, 1),
+                     "last": None if last is None else
+-                    {"rolled_out": last.rolled_out, "ready": last.ready, "restarts": last.restarts}}
++                    {"rolled_out": last.rolled_out, "ready": last.ready, "restarts": last.restarts,
++                     **({} if util is None else {"max_cpu_utilisation": round(util, 2)})}}
+         clock.sleep(poll_s)
+diff -ruN orig/prom/promrules.yaml new/prom/promrules.yaml
+--- orig/prom/promrules.yaml	2026-10-21 20:55:45.000000000 +0000
++++ new/prom/promrules.yaml	2026-11-22 21:30:42.588447647 +0000
+@@ -48,4 +48,25 @@
+             summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is not ready"
+ 
+ 
++        # CPU saturation: usage over 90 % of the CPU limit. Pod-scoped (namespace/pod/container labels),
++        # like the other alerts, so the dispatcher needs no special path for it.
++        # cAdvisor refreshes its counters only every ~10 s, hence the 30 s rate window and the delay of
++        # this alert compared to the kube-state-metrics based ones.
++        - alert: ChaosPodCPUSaturated
++          expr: |
++            sum by (namespace, pod, container) (
++              rate(container_cpu_usage_seconds_total{
++                namespace="chaos", container!="", container!="POD"
++              }[30s])
++            )
++            / on (namespace, pod, container)
++            kube_pod_container_resource_limits{namespace="chaos", resource="cpu"}
++            > 0.9
++          for: 5s
++          labels:
++            severity: warning
++            experiment: chaos
++          annotations:
++            summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} uses more than 90% of its CPU limit"
++
+ #  Alerting rules without the keep_firing_for clause will deactivate on the first evaluation where the condition is not met
+\ No newline at end of file
+diff -ruN orig/tests/test_uc9.py new/tests/test_uc9.py
+--- orig/tests/test_uc9.py	1970-01-01 00:00:00.000000000 +0000
++++ new/tests/test_uc9.py	2026-11-22 21:32:37.889532199 +0000
+@@ -0,0 +1,197 @@
++"""Offline tests for the UC9 changes (no cluster, no Prometheus, no LLM needed).
++
++Run from the repository root:   python3 tests/test_uc9.py
++Each resolver has modules with the same names (verify.py, cluster.py, ...), so each block runs in a
++fresh interpreter state with its own src directory on the path.
++"""
++import importlib, os, sys, unittest
++
++ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
++MODULES = ["actions", "resolver", "verify", "saturation", "tools", "cluster", "clock", "agent", "lookup", "signature"]
++
++
++def use_src(subdir):
++    for m in MODULES:
++        sys.modules.pop(m, None)
++    sys.path[:] = [p for p in sys.path if not p.startswith(ROOT)]
++    sys.path.insert(0, os.path.join(ROOT, subdir, "src"))
++
++
++class FakeClock:
++    def __init__(self): self.t = 0.0
++    def now(self): return self.t
++    def sleep(self, s): self.t += s
++
++
++class FakeCluster:
++    """One Deployment. `scale()` makes new replicas Ready immediately (the pods start fast in the test)."""
++    def __init__(self, replicas=1, ready=True):
++        self.replicas, self.ready = replicas, ready
++        self.patches = []
++    def get_deployment(self, ns, name):
++        n = self.replicas
++        return {"metadata": {"name": name, "generation": 1},
++                "spec": {"replicas": n, "selector": {"matchLabels": {"app": name}},
++                         "template": {"spec": {"containers": [{"name": name, "image": "x",
++                                                                 "resources": {"limits": {"cpu": "250m"}}}]}}},
++                "status": {"observedGeneration": 1, "updatedReplicas": n, "replicas": n,
++                           "readyReplicas": n if self.ready else 0}}
++    def list_pods(self, ns, selector):
++        return [{"metadata": {"name": f"uc9-abc-{i}"}, "status": {"containerStatuses": [{"restartCount": 0}]}}
++                for i in range(self.replicas)]
++    def patch_deployment(self, ns, name, body):
++        self.patches.append(body)
++        self.replicas = body["spec"]["replicas"]
++
++
++class FakeSaturation:
++    """CPU utilisation as a function of replicas: load / capacity, like the real scenario (10 rps, 4.5 rps per pod)."""
++    def __init__(self, cluster, load=10.0, per_pod=4.5):
++        self.cluster, self.load, self.per_pod = cluster, load, per_pod
++        self.queries = 0
++    def max_cpu_utilisation(self, ns, pods):
++        self.queries += 1
++        return min(1.0, self.load / (self.per_pod * max(1, len(pods))))
++
++
++class DeterministicTests(unittest.TestCase):
++    def setUp(self):
++        use_src("deter_resolver")
++        self.actions = importlib.import_module("actions")
++        self.resolver = importlib.import_module("resolver")
++        self.verify = importlib.import_module("verify")
++
++    def req(self, **params):
++        return self.actions.ActionRequest(incident="i", action="scale_deployment", params=params,
++                                          namespace="chaos", kind="Deployment", name="uc9")
++
++    def test_scale_adds_replicas(self):
++        c = FakeCluster(1)
++        out = self.actions.scale_deployment(c, self.req(add_replicas=2, max_replicas=5, timeout_s=90))
++        self.assertTrue(out.applied); self.assertEqual(c.replicas, 3); self.assertEqual(out.verify_timeout_s, 90)
++
++    def test_scale_is_capped(self):
++        c = FakeCluster(4)
++        out = self.actions.scale_deployment(c, self.req(add_replicas=2, max_replicas=5))
++        self.assertEqual(c.replicas, 5); self.assertTrue(out.detail["capped"])
++
++    def test_scale_at_ceiling_does_nothing(self):
++        c = FakeCluster(5)
++        out = self.actions.scale_deployment(c, self.req(add_replicas=2, max_replicas=5))
++        self.assertFalse(out.applied); self.assertIsNone(out.verify_timeout_s); self.assertEqual(c.patches, [])
++
++    def test_rejects_bad_params(self):
++        with self.assertRaises(self.actions.ActionError):
++            self.actions.scale_deployment(FakeCluster(1), self.req(add_replicas=0, max_replicas=5))
++
++    def _wait(self, cluster, sat, timeout=60):
++        return self.verify.wait_until_healthy(cluster, "chaos", "uc9", timeout_s=timeout, stable_s=10, poll_s=2,
++                                              clock=FakeClock(), saturation=sat)
++
++    def test_doing_nothing_is_NOT_healthy_when_saturated(self):
++        c = FakeCluster(1); r = self._wait(c, FakeSaturation(c))
++        self.assertFalse(r["healthy"]); self.assertEqual(r["last"]["max_cpu_utilisation"], 1.0)
++
++    def test_two_replicas_still_saturated(self):
++        c = FakeCluster(2); self.assertFalse(self._wait(c, FakeSaturation(c))["healthy"])
++
++    def test_three_replicas_healthy(self):
++        c = FakeCluster(3); r = self._wait(c, FakeSaturation(c))
++        self.assertTrue(r["healthy"]); self.assertLess(r["max_cpu_utilisation"], 0.9)
++
++    def test_without_prometheus_old_behaviour(self):
++        c = FakeCluster(1); r = self._wait(c, None)
++        self.assertTrue(r["healthy"]); self.assertNotIn("max_cpu_utilisation", r)
++
++    def test_unknown_cpu_does_not_block_other_use_cases(self):
++        class Unknown:
++            def max_cpu_utilisation(self, ns, pods): return None
++        c = FakeCluster(1); self.assertTrue(self._wait(c, Unknown())["healthy"])
++
++    def test_end_to_end_resolve_with_playbook_params(self):
++        c = FakeCluster(1)
++        cfg = self.resolver.ResolverConfig(namespaces=frozenset({"chaos"}), stable_s=10, poll_s=2)   # no Prometheus
++        raw = {"incident": "i", "action": "scale_deployment",
++               "params": {"add_replicas": 2, "max_replicas": 5, "timeout_s": 30},
++               "target": {"namespace": "chaos", "kind": "Deployment", "name": "uc9"}}
++        v = self.resolver.resolve(raw, c, cfg, FakeClock())
++        self.assertEqual(v["status"], "resolved"); self.assertTrue(v["applied"])
++        self.assertEqual(v["detail"]["to_replicas"], 3)
++
++
++class SaturationQueryTests(unittest.TestCase):
++    def setUp(self):
++        use_src("deter_resolver")
++        self.sat = importlib.import_module("saturation")
++
++    def _client(self, payload=None, boom=False):
++        outer = self
++        class R:
++            def raise_for_status(s): pass
++            def json(s): return payload
++        class H:
++            def get(s, url, params, timeout):
++                outer.last = params["query"]
++                if boom: raise RuntimeError("down")
++                return R()
++        return self.sat.PrometheusSaturation("http://prom:9090", http=H())
++
++    def test_parses_value_and_builds_query(self):
++        p = self._client({"data": {"result": [{"value": [0, "0.93"]}]}})
++        self.assertAlmostEqual(p.max_cpu_utilisation("chaos", ["uc9-a-1", "uc9-a-2"]), 0.93)
++        self.assertIn('pod=~"uc9-a-1|uc9-a-2"', self.last); self.assertIn("[30s]", self.last)
++
++    def test_empty_result_is_unknown(self):
++        self.assertIsNone(self._client({"data": {"result": []}}).max_cpu_utilisation("chaos", ["uc9-a-1"]))
++
++    def test_failure_is_unknown_not_an_exception(self):
++        self.assertIsNone(self._client(boom=True).max_cpu_utilisation("chaos", ["uc9-a-1"]))
++
++    def test_unsafe_names_are_rejected(self):
++        p = self._client({"data": {"result": [{"value": [0, "1"]}]}})
++        self.assertIsNone(p.max_cpu_utilisation("chaos", ['x"}) or vector(1) #']))
++
++
++class LlmToolTests(unittest.TestCase):
++    def setUp(self):
++        use_src("llm_resolver")
++        self.tools = importlib.import_module("tools")
++        self.cluster = FakeCluster(1)
++        self.sat = FakeSaturation(self.cluster)
++        self.tk = self.tools.Toolkit(self.cluster, "chaos", stable_s=10, poll_s=2, clock=FakeClock(),
++                                     saturation=self.sat, max_replicas=5)
++        self.by_name = {t.name: t for t in self.tk.tools}
++
++    def call(self, name, **kw): return self.by_name[name].invoke(kw)
++
++    def test_tool_list(self):
++        self.assertEqual(len(self.tk.tools), 16)
++        self.assertIn("scale_deployment", self.by_name); self.assertIn("get_cpu_usage", self.by_name)
++
++    def test_get_cpu_usage(self):
++        out = self.call("get_cpu_usage", deployment="uc9")
++        self.assertIn('"max_pod_cpu_utilisation": 1.0', out); self.assertIn("250m", out)
++
++    def test_scale_records_change(self):
++        out = self.call("scale_deployment", deployment="uc9", replicas=3)
++        self.assertEqual(self.cluster.replicas, 3); self.assertIn("1 to 3", out)
++        self.assertEqual(self.tk.changes[0]["tool"], "scale_deployment")
++
++    def test_scale_respects_ceiling_and_minimum(self):
++        self.assertIn("ERROR", self.call("scale_deployment", deployment="uc9", replicas=6))
++        self.assertIn("ERROR", self.call("scale_deployment", deployment="uc9", replicas=0))
++        self.assertEqual(self.cluster.replicas, 1); self.assertEqual(self.tk.changes, [])
++
++    def test_check_health_reports_saturation(self):
++        self.assertIn('"healthy": false', self.call("check_health", deployment="uc9", wait_s=0))
++        self.call("scale_deployment", deployment="uc9", replicas=3)
++        self.assertIn('"healthy": true', self.call("check_health", deployment="uc9", wait_s=30))
++
++    def test_without_prometheus_tool_says_so(self):
++        tk = self.tools.Toolkit(FakeCluster(1), "chaos", stable_s=10, poll_s=2, clock=FakeClock())
++        out = {t.name: t for t in tk.tools}["get_cpu_usage"].invoke({"deployment": "uc9"})
++        self.assertIn("not available", out)
++
++
++if __name__ == "__main__":
++    unittest.main(verbosity=2)

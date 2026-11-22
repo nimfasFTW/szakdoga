@@ -4,10 +4,12 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from typing import Optional
 
 from actions import ACTIONS, ActionError, ActionRequest
 from clock import Clock
 from cluster import Cluster
+from saturation import PrometheusSaturation
 from verify import wait_until_healthy
 
 logger = logging.getLogger("deter_resolver")
@@ -18,6 +20,8 @@ class ResolverConfig:
     namespaces: frozenset[str]
     stable_s: float = 10.0
     poll_s: float = 2.0
+    prometheus_url: Optional[str] = None   # enables the CPU saturation criterion of the verification
+    max_cpu_util: float = 0.9              # a pod above this share of its CPU limit is not healthy
 
 
 def _utcnow() -> str:
@@ -55,7 +59,9 @@ def resolve(raw: dict, cluster: Cluster, cfg: ResolverConfig, clock: Clock) -> d
     if outcome.verify_timeout_s is None:
         return verdict("unresolved", outcome.applied, applied_after, **outcome.detail)
 
+    saturation = PrometheusSaturation(cfg.prometheus_url) if cfg.prometheus_url else None
     result = wait_until_healthy(cluster, req.namespace, req.name, timeout_s=outcome.verify_timeout_s,
-                                stable_s=cfg.stable_s, poll_s=cfg.poll_s, clock=clock)
+                                stable_s=cfg.stable_s, poll_s=cfg.poll_s, clock=clock,
+                                saturation=saturation, max_cpu_util=cfg.max_cpu_util)
     return verdict("resolved" if result["healthy"] else "unresolved", outcome.applied, applied_after,
                    **outcome.detail, verification=result)

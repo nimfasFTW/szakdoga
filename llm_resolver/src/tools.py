@@ -23,7 +23,7 @@ from langchain_core.tools import tool
 
 from clock import Clock
 from cluster import Cluster
-from verify import wait_until_healthy
+from verify import Saturation, wait_until_healthy
 
 logger = logging.getLogger("llm_resolver.tools")
 
@@ -204,7 +204,11 @@ class Toolkit:
     """One instance per incident. `tools` goes to the agent; the rest is the paper trail."""
 
     def __init__(self, cluster: Cluster, namespace: str, *, stable_s: float, poll_s: float,
-                 clock: Clock, max_wait_s: float = 90.0) -> None:
+                 clock: Clock, max_wait_s: float = 90.0, saturation: Optional[Saturation] = None,
+                 max_cpu_util: float = 0.9, max_replicas: int = 5) -> None:
+        self.saturation = saturation
+        self.max_cpu_util = max_cpu_util
+        self.max_replicas = max_replicas   # pre-approved ceiling, the same as in the deterministic playbook
         self.cluster = cluster
         self.namespace = namespace
         self.stable_s = stable_s
@@ -331,13 +335,39 @@ class Toolkit:
                 out.append(summarize_service(svc, pods))
             return _j(out)
 
+        @reg
+        def get_cpu_usage(deployment: str) -> str:
+            """Show how much of its CPU limit the busiest pod of a Deployment is using right now (1.0 = 100%).
+
+            Use it for slowness or overload: a pod at its CPU limit is throttled and answers slowly
+            even though it is Running and Ready. The value is averaged over the last ~30 seconds, so
+            it lags behind a change by up to that long.
+
+            Args:
+                deployment: Name of the Deployment.
+            """
+            if self.saturation is None:
+                return "CPU metrics are not available in this environment."
+            dep = c.get_deployment(ns, deployment)
+            selector = dep["spec"]["selector"].get("matchLabels", {})
+            pods = [p["metadata"]["name"] for p in c.list_pods(ns, selector_string(selector))]
+            util = self.saturation.max_cpu_utilisation(ns, pods)
+            if util is None:
+                return ("No CPU data: the pods have no CPU limit, are too new to have samples, or "
+                        "Prometheus is unreachable.")
+            limits = [(ct.get("resources") or {}).get("limits", {}).get("cpu")
+                      for ct in _pod_spec(dep)["containers"]]
+            return _j({"deployment": deployment, "replicas": dep["spec"].get("replicas", 1),
+                       "cpu_limits": limits, "max_pod_cpu_utilisation": round(util, 2)})
+
         # ============================ check ============================
         @reg
         def check_health(deployment: str, wait_s: int = 30) -> str:
             """Check whether a Deployment is healthy, waiting up to wait_s seconds for it to become so.
 
-            Healthy means: rollout finished, every replica Ready, and no container restarted for a
-            stable period. This is the same check that judges your work when you finish, so
+            Healthy means: rollout finished, every replica Ready, no container restarted for a
+            stable period, and no pod uses more than 90% of its CPU limit. This is the same check
+            that judges your work when you finish, so
             healthy=false means the problem is NOT fixed yet. Call it after every change.
 
             Args:
@@ -346,7 +376,8 @@ class Toolkit:
             """
             wait = max(0.0, min(float(wait_s), self.max_wait_s))
             return _j(wait_until_healthy(c, ns, deployment, timeout_s=wait, stable_s=self.stable_s,
-                                         poll_s=self.poll_s, clock=self.clock))
+                                         poll_s=self.poll_s, clock=self.clock,
+                                         saturation=self.saturation, max_cpu_util=self.max_cpu_util))
 
         # ============================ write ============================
         @reg
@@ -461,6 +492,30 @@ class Toolkit:
             return f"Service {service} patched with {json.dumps(patch)}. Use list_services to confirm the result."
 
         @reg
+        def scale_deployment(deployment: str, replicas: int) -> str:
+            """Set the number of replicas of a Deployment (horizontal scaling).
+
+            Use it when the pods are healthy but too few to carry the load. The load is spread over
+            Ready replicas by the Service. There is a ceiling on the replica count.
+
+            Args:
+                deployment: Name of the Deployment.
+                replicas: New number of replicas (at least 1).
+            """
+            replicas = int(replicas)
+            if replicas < 1:
+                raise ValueError("replicas must be at least 1")
+            if replicas > self.max_replicas:
+                raise ValueError(f"replicas must not exceed {self.max_replicas} (pre-approved ceiling)")
+            current = int(c.get_deployment(ns, deployment)["spec"].get("replicas", 1))
+            if current == replicas:
+                return f"No change: {deployment} already has {replicas} replicas."
+            c.patch_deployment(ns, deployment, {"spec": {"replicas": replicas}})
+            self._changed("scale_deployment", f"{deployment}: replicas {current} -> {replicas}")
+            return (f"Replicas of {deployment} changed from {current} to {replicas}. New pods take a "
+                    f"while to start; use check_health to wait.")
+
+        @reg
         def restart_deployment(deployment: str) -> str:
             """Restart all pods of a Deployment with a rolling restart (like 'kubectl rollout restart').
 
@@ -477,5 +532,6 @@ class Toolkit:
             return f"Rolling restart of {deployment} started."
 
         return [list_workloads, get_deployment, get_pods, get_pod_logs, get_events, get_configmap,
-                list_services, check_health, set_configmap_value, set_container_image,
-                set_container_resources, set_container_env, patch_service, restart_deployment]
+                list_services, get_cpu_usage, check_health, set_configmap_value, set_container_image,
+                set_container_resources, set_container_env, patch_service, scale_deployment,
+                restart_deployment]

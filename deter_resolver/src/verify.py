@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from typing import Optional, Protocol
 
 from clock import Clock
 from cluster import Cluster
@@ -19,11 +20,16 @@ from cluster import Cluster
 logger = logging.getLogger("deter_resolver.verify")
 
 
+class Saturation(Protocol):
+    def max_cpu_utilisation(self, namespace: str, pods: "list[str]") -> Optional[float]: ...
+
+
 @dataclass(frozen=True)
 class Health:
     rolled_out: bool
     ready: bool
     restarts: int
+    pods: tuple = ()     # names of the pods behind the Deployment (for the saturation query)
 
 
 def _selector(match_labels: dict) -> str:
@@ -43,11 +49,12 @@ def read_health(cluster: Cluster, namespace: str, name: str) -> Health:
     pods = cluster.list_pods(namespace, _selector(dep["spec"]["selector"].get("matchLabels", {})))
     restarts = sum(cs.get("restartCount", 0)
                    for p in pods for cs in (p.get("status", {}).get("containerStatuses") or []))
-    return Health(rolled_out, ready, restarts)
+    return Health(rolled_out, ready, restarts, tuple(p["metadata"]["name"] for p in pods))
 
 
 def wait_until_healthy(cluster: Cluster, namespace: str, name: str, *, timeout_s: float,
-                       stable_s: float, poll_s: float, clock: Clock) -> dict:
+                       stable_s: float, poll_s: float, clock: Clock,
+                       saturation: Optional[Saturation] = None, max_cpu_util: float = 0.9) -> dict:
     start = clock.now()
     stable_since = None
     baseline = 0
@@ -59,15 +66,21 @@ def wait_until_healthy(cluster: Cluster, namespace: str, name: str, *, timeout_s
         except Exception as e:   # a transient API error must not abort the verification
             logger.warning("health read failed: %r", e)
             last = None
-        if last is not None and last.ready:
+        util = None
+        if last is not None and last.ready and saturation is not None:
+            util = saturation.max_cpu_utilisation(namespace, list(last.pods))
+        saturated = util is not None and util > max_cpu_util
+        if last is not None and last.ready and not saturated:
             if stable_since is None or last.restarts > baseline:
                 stable_since, baseline = t, last.restarts   # (re)start the stability clock
             if t - stable_since >= stable_s:
-                return {"healthy": True, "waited_s": round(t - start, 1)}
+                return {"healthy": True, "waited_s": round(t - start, 1),
+                        **({} if util is None else {"max_cpu_utilisation": round(util, 2)})}
         else:
             stable_since = None
         if t - start >= timeout_s:
             return {"healthy": False, "waited_s": round(t - start, 1),
                     "last": None if last is None else
-                    {"rolled_out": last.rolled_out, "ready": last.ready, "restarts": last.restarts}}
+                    {"rolled_out": last.rolled_out, "ready": last.ready, "restarts": last.restarts,
+                     **({} if util is None else {"max_cpu_utilisation": round(util, 2)})}}
         clock.sleep(poll_s)

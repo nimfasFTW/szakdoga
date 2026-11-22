@@ -90,6 +90,24 @@ def bump_memory_limit(cluster: Cluster, req: ActionRequest) -> ActionOutcome:
                           "capped": new == cap_mib and math.ceil(current * (1 + pct / 100)) > cap_mib})
 
 
+def scale_deployment(cluster: Cluster, req: ActionRequest) -> ActionOutcome:
+    """Add replicas, up to a pre-approved ceiling (the horizontal counterpart of bump_memory_limit)."""
+    add = int(req.params["add_replicas"])
+    cap = int(req.params["max_replicas"])
+    if add < 1:
+        raise ActionError("bad_params", add_replicas=add)
+
+    dep = cluster.get_deployment(req.namespace, req.name)
+    current = int(dep["spec"].get("replicas", 1))
+    new = min(current + add, cap)
+    if new <= current:   # already at the pre-approved ceiling: this playbook has nothing left to give
+        return ActionOutcome(False, None, {"reason": "ceiling_reached", "current_replicas": current,
+                                           "max_replicas": cap})
+    cluster.patch_deployment(req.namespace, req.name, {"spec": {"replicas": new}})
+    return ActionOutcome(True, float(req.params.get("timeout_s", 90)),
+                         {"from_replicas": current, "to_replicas": new, "capped": current + add > cap})
+
+
 def wait_and_verify(cluster: Cluster, req: ActionRequest) -> ActionOutcome:
     """Deliberately does nothing: gives Kubernetes's own retry/backoff a bounded chance."""
     return ActionOutcome(False, float(req.params.get("wait_s", 60)), {"waiting_for": "self-recovery"})
@@ -97,5 +115,6 @@ def wait_and_verify(cluster: Cluster, req: ActionRequest) -> ActionOutcome:
 
 ACTIONS: dict[str, Callable[[Cluster, ActionRequest], ActionOutcome]] = {
     "bump_memory_limit": bump_memory_limit,
+    "scale_deployment": scale_deployment,
     "wait_and_verify": wait_and_verify,
 }

@@ -8,6 +8,9 @@ data:
   VERIFY_STABLE_S: "10"   # a fixed workload must stay ready, with no restarts, for this long
   VERIFY_POLL_S: "2"
   VERIFY_TIMEOUT_S: "60"   # how long the final verification waits for the workload after the agent changed something
+  PROMETHEUS_URL: "http://monitoring-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090"   # CPU saturation criterion + get_cpu_usage tool; empty = off
+  MAX_CPU_UTIL: "0.9"       # a pod above this share of its CPU limit is not healthy
+  MAX_REPLICAS: "5"         # ceiling for the scale_deployment tool (same as the playbook)
   AGENT_MAX_STEPS: "20"    # max LLM calls per incident (one step = one model call, usually followed by tool calls)
   LLM_MODEL: "gemini-3.7-flash"
   LLM_RPM: "20"             # max model calls per minute (free tier = 5). Set "0" to disable once you have a paid key

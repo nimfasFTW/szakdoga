@@ -39,6 +39,26 @@ playbooks:
 
   # attempt >= 1: still failing after the wait -> miss -> escalation
 
+  # ---- Load family: UC-9 ------------------------------------------------------------
+  # CPU saturation is a capacity problem, not a crash: the pod is Running and Ready, so only the
+  # alert name tells it apart. The remedy is to add replicas, up to a pre-approved ceiling.
+  # `waiting_reason/termination_reason: null` = the pod never crashed. Without them this entry would be
+  # ambiguous with the OOM ones (equal specificity), and a pod that is saturated AND was OOM-killed is
+  # not a plain load problem anyway: it should miss and be escalated.
+  # Every tier waits for the load to spread (the CPU metric of the old pod needs a while to drop),
+  # hence the longer verification window.
+  - id: cpu-scale-out
+    match: { alertname: ChaosPodCPUSaturated, waiting_reason: null, termination_reason: null, attempt: 0 }
+    action: scale_deployment
+    params: { add_replicas: 2, max_replicas: 5, timeout_s: 90 }
+
+  - id: cpu-scale-out-more
+    match: { alertname: ChaosPodCPUSaturated, waiting_reason: null, termination_reason: null, attempt: 1 }
+    action: scale_deployment
+    params: { add_replicas: 2, max_replicas: 5, timeout_s: 90 }
+
+  # attempt >= 2: exhausted -> miss -> escalation
+
   # ---- Deliberately NOT here ---------------------------------------------------------
   # UC-3 (bad config), UC-7 (dependency), UC-8 (transitive): the pod is Running and merely
   # NotReady (no waiting_reason, no termination_reason), or crashes with termination

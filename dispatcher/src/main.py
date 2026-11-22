@@ -24,7 +24,8 @@ logger.addHandler(ch)
 CONFIG = Config(
     namespaces=frozenset(os.getenv("WATCHED_NAMESPACES", "chaos").split(",")),
     pod_alerts=frozenset(os.getenv(
-        "POD_ALERTS", "ChaosPodCrashLooping,ChaosPodImagePullFailure,ChaosPodNotReady").split(",")),
+        "POD_ALERTS",
+        "ChaosPodCrashLooping,ChaosPodImagePullFailure,ChaosPodNotReady,ChaosPodCPUSaturated").split(",")),
 )
 # deterministic: table only, a miss gives up.  hybrid: table first, a miss goes to the LLM agent.
 # llm: no table, every actionable alert goes to the LLM agent.

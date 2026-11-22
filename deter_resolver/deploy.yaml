@@ -7,6 +7,10 @@ data:
   WATCHED_NAMESPACES: "chaos"
   VERIFY_STABLE_S: "10"   # a fixed workload must stay ready, with no restarts, for this long
   VERIFY_POLL_S: "2"
+  # CPU saturation criterion of the verification (UC-9): a pod above MAX_CPU_UTIL of its CPU limit is not healthy.
+  # Leave PROMETHEUS_URL empty to disable it.
+  PROMETHEUS_URL: "http://monitoring-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090"
+  MAX_CPU_UTIL: "0.9"
 
 ---
 

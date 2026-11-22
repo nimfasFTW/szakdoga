@@ -23,7 +23,7 @@ import yaml
 from signature import Signature
 
 MATCH_FIELDS = ("alertname", "waiting_reason", "termination_reason", "attempt")
-KNOWN_ACTIONS = ("bump_memory_limit", "wait_and_verify")
+KNOWN_ACTIONS = ("bump_memory_limit", "wait_and_verify", "scale_deployment")
 
 
 class TableError(ValueError):
