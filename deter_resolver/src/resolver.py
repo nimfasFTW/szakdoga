@@ -20,8 +20,8 @@ class ResolverConfig:
     namespaces: frozenset[str]
     stable_s: float = 10.0
     poll_s: float = 2.0
-    prometheus_url: Optional[str] = None   # enables the CPU saturation criterion of the verification
-    max_cpu_util: float = 0.9              # a pod above this share of its CPU limit is not healthy
+    prometheus_url: Optional[str] = None  
+    max_cpu_util: float = 0.9             
 
 
 def _utcnow() -> str:

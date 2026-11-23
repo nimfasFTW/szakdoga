@@ -77,7 +77,7 @@ class PodInspector:
         try:
             pod_obj = self._core.read_namespaced_pod(pod_name, namespace)
         except ApiException as e:
-            if e.status == 404:   # already replaced, e.g. by a rollout we triggered
+            if e.status == 404: 
                 return Facts(alertname=alertname, namespace=namespace, pod=pod_name,
                              container=container_hint, pod_found=False)
             raise
@@ -86,8 +86,7 @@ class PodInspector:
         return facts_from_pod(pod, alertname, container_hint, kind, name)
 
     def _resolve_workload(self, namespace: str, pod: dict) -> tuple[str, str]:
-        """Pod -> ReplicaSet -> Deployment. Fix actions must patch the Deployment: a patch on
-        the pod would not survive the next reschedule (and pod specs are mostly immutable)."""
+        """Pod -> ReplicaSet -> Deployment."""
         pod_name = pod["metadata"]["name"]
         owners = pod["metadata"].get("ownerReferences") or []
         ctrl = next((o for o in owners if o.get("controller")), None)

@@ -44,9 +44,18 @@ helm install monitoring prometheus-community/kube-prometheus-stack --namespace m
 # https://console.mistral.ai/home?profile_dialog=api-keys
 
 
-kubectl logs -n control deploy/dispatcher -f
-kubectl logs -n control deploy/llm-resolver -f
-kubectl logs -n control deploy/deter-resolver -f
+clear; kubectl logs -n control deploy/dispatcher -f
+clear; kubectl logs -n control deploy/llm-resolver -f
+clear; kubectl logs -n control deploy/deter-resolver -f
+
+kubectl delete -f chaos/k8s_yamls
+kubectl get pods -n chaos
+kubectl apply -f chaos/k8s_yamls/uc9.yaml
+kubectl apply -f chaos/k8s_yamls/uc9_load.yaml
+kubectl logs -n chaos deploy/uc9-load
+
+cloc --exclude-dir=.venv .
+cloc .
 
 helm get values monitoring -n monitoring -a
 

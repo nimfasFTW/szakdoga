@@ -1,9 +1,3 @@
-"""The debugging agent: a LangChain tool-calling agent on Gemini.
-
-This module only knows how to run the model against a list of tools. What the tools do is in
-tools.py, and whether the cluster ended up healthy is decided by resolver.py, never by what the
-agent claims in its final message.
-"""
 from __future__ import annotations
 
 import logging
@@ -60,12 +54,12 @@ OUTCOME: <healthy | not fixed, and why>
 
 @dataclass
 class AgentRun:
-    summary: str                     # the agent's final message (its own report; not trusted as a verdict)
-    steps: int                       # model calls
+    summary: str                     
+    steps: int                      
     input_tokens: int
     output_tokens: int
     model: str
-    error: Optional[str] = None      # set when the run ended abnormally; the tool record is still valid
+    error: Optional[str] = None   
 
 
 @lru_cache(maxsize=1)
@@ -80,9 +74,9 @@ def get_model() -> ChatGoogleGenerativeAI:   # lazy: importing this module must 
     return ChatGoogleGenerativeAI(
         rate_limiter=limiter,
         model=MODEL_NAME,
-        temperature=float(os.getenv("LLM_TEMPERATURE", "1.0")),   # Gemini 3+ is tuned for 1.0
+        temperature=float(os.getenv("LLM_TEMPERATURE", "1.0")),
         max_tokens=None,
-        timeout=float(os.getenv("LLM_TIMEOUT_S", "90")),          # one hung request must not hang the incident
+        timeout=float(os.getenv("LLM_TIMEOUT_S", "90")),     
         max_retries=2,
     )
 
@@ -99,20 +93,13 @@ def _usage(messages: Sequence) -> tuple[int, int, int]:
 
 
 def investigate(prompt: str, tools: Sequence, max_steps: int) -> AgentRun:
-    """Run the agent until it stops calling tools or `max_steps` model calls are used.
-
-    Runtime failures (rate limit, step limit, ...) do not raise: whatever the agent did up to
-    that point is still in the toolkit's record, and the resolver must verify the cluster anyway.
-    Only a failure to even set up the model raises."""
     agent = create_agent(get_model(), list(tools), system_prompt=SYSTEM_PROMPT)
 
     messages: list = []
     error: Optional[str] = None
     try:
-        # stream_mode="values" yields the full state after every step, so if the run dies half way
-        # we still have the conversation so far
         for state in agent.stream({"messages": [{"role": "user", "content": prompt}]},
-                                  config={"recursion_limit": 2 * max_steps},   # a step = model node + tools node, so this allows max_steps model calls
+                                  config={"recursion_limit": 2 * max_steps},  
                                   stream_mode="values"):
             messages = state["messages"]
     except GraphRecursionError:

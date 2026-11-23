@@ -40,9 +40,6 @@ app = FastAPI()
 
 @app.post("/resolve")
 def resolve_endpoint(payload: dict = Body(...)):
-    """Blocks until the agent has finished AND the result is verified (a minute or more: several LLM
-    round trips plus the verification). The dispatcher calls this from a background task, never from
-    the Alertmanager webhook thread, so that is fine."""
     logger.info("request %s", json.dumps(payload, sort_keys=True))
     result = resolve(payload, get_cluster(), CONFIG, CLOCK, investigate)
     logger.info("verdict %s", json.dumps(result, sort_keys=True, default=str))

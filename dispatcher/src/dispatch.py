@@ -1,8 +1,3 @@
-"""Hand a fast-loop decision to the resolver and do the bookkeeping with its verdict.
-
-Runs in a background task, NOT in the Alertmanager webhook thread: the resolver blocks for the
-whole execute+verify cycle (tens of seconds) and Alertmanager gives up on a webhook after ~10 s.
-"""
 from __future__ import annotations
 
 import json

@@ -1,7 +1,4 @@
 """alert -> (filter) -> enrich -> signature -> lookup -> decision.
-
-No FastAPI and no cluster access in here: the inspector, table and attempt store are
-injected, so the whole path can be tested with fakes.
 """
 from __future__ import annotations
 

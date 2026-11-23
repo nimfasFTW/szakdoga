@@ -34,8 +34,10 @@ docker build -t nimfasftw/szakdoga_deter_resolver:latest "$SCRIPT_DIR/../deter_r
 p2=$!
 docker build -t nimfasftw/szakdoga_llm_resolver:latest "$SCRIPT_DIR/../llm_resolver/." &
 p3=$!
+docker build -t nimfasftw/szakdoga_chaos:latest "$SCRIPT_DIR/../chaos/." &
+p4=$!
 
-wait_all "BUILD" "$p1" "$p2" "$p3"
+wait_all "BUILD" "$p1" "$p2" "$p3" "$p4"
 
 # PUSH
 docker push nimfasftw/szakdoga_dispatcher:latest &
@@ -44,8 +46,10 @@ docker push nimfasftw/szakdoga_deter_resolver:latest &
 p2=$!
 docker push nimfasftw/szakdoga_llm_resolver:latest &
 p3=$!
+docker push nimfasftw/szakdoga_chaos:latest &
+p4=$!
 
-wait_all "PUSH" "$p1" "$p2" "$p3"
+wait_all "PUSH" "$p1" "$p2" "$p3" "$p4"
 
 # APPLY
 kubectl apply -f "$SCRIPT_DIR/../namespace_chaos.yaml"
@@ -57,6 +61,7 @@ kubectl apply -f "$SCRIPT_DIR/../deter_resolver/" &
 p2=$!
 kubectl apply -f "$SCRIPT_DIR/../dispatcher/" &
 p3=$!
+
 
 wait_all "APPLY" "$p1" "$p2" "$p3"
 

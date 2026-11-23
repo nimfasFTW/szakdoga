@@ -48,10 +48,6 @@ spec:
             summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is not ready"
 
 
-        # CPU saturation: usage over 90 % of the CPU limit. Pod-scoped (namespace/pod/container labels),
-        # like the other alerts, so the dispatcher needs no special path for it.
-        # cAdvisor refreshes its counters only every ~10 s, hence the 30 s rate window and the delay of
-        # this alert compared to the kube-state-metrics based ones.
         - alert: ChaosPodCPUSaturated
           expr: |
             sum by (namespace, pod) (
@@ -68,5 +64,3 @@ spec:
             experiment: chaos
           annotations:
             summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} uses more than 90% of its CPU limit"
-
-#  Alerting rules without the keep_firing_for clause will deactivate on the first evaluation where the condition is not met

@@ -1,16 +1,3 @@
-"""CPU saturation of a workload, read from Prometheus.
-
-Why this exists: 'rolled out + ready + no restarts' (verify.py) is also true for a pod that is
-overloaded but alive. For a load problem (UC-9) that definition would call 'did nothing' a success.
-So a workload only counts as healthy if none of its pods uses more than `max_cpu_util` of its CPU limit.
-
-Same expression as the ChaosPodCPUSaturated alert (pod level), but evaluated by us per verification poll,
-for the pods of ONE Deployment. We look at the workload's resource usage, not at whether the alert
-has cleared (the alert lags behind and its pod names change with every rollout).
-
-Best effort by design: if Prometheus cannot be reached, or the pods have no CPU limit / no samples yet,
-the answer is None ('unknown') and the CPU criterion is skipped, so it cannot break the other use cases.
-"""
 from __future__ import annotations
 
 import logging
@@ -40,7 +27,7 @@ class PrometheusSaturation:
         query = (
             f'sum by (namespace, pod) (rate(container_cpu_usage_seconds_total'
             f'{{namespace="{namespace}"}}[{self._window_s}s]))'
-            f' / on (namespace, pod) '
+            f' / '
             f'sum by (namespace, pod) (kube_pod_container_resource_limits'
             f'{{namespace="{namespace}", resource="cpu"}})'
         )

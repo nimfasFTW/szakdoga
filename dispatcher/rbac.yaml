@@ -1,5 +1,3 @@
-# Read-only for now (enrichment only). Extend when the executor lands:
-#   apps/deployments: get, patch   |   configmaps: get, patch   |   pods: delete (if you restart pods directly)
 apiVersion: v1
 kind: ServiceAccount
 metadata:

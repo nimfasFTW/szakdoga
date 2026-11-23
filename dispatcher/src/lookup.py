@@ -1,17 +1,3 @@
-"""The lookup table: (signature) -> playbook.
-
-Matching rules (all deterministic, no model involved):
-  * A playbook constrains a subset of the signature fields. Omitted fields are wildcards.
-  * If several playbooks match, the MOST SPECIFIC one (most constrained fields) wins.
-  * Two playbooks of equal specificity that could match the same signature are ambiguous
-    and rejected when the table is loaded, so a lookup can never be a coin flip.
-  * No match is a normal, cheap outcome. It is how "not a known issue" and
-    "known issue, but the playbook is exhausted" are both expressed.
-
-This module is shared by the deterministic SUT and the hybrid SUT. What a miss MEANS
-differs (deterministic: give up and log; hybrid: escalate to the LLM agent), but that
-decision lives in the caller, not here.
-"""
 from __future__ import annotations
 
 from dataclasses import dataclass

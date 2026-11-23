@@ -1,5 +1,3 @@
-"""The only module that talks to the Kubernetes API. Everything else works on plain dicts,
-so the actions and the verification can be tested against a fake cluster."""
 from __future__ import annotations
 
 from typing import Any, Protocol
@@ -7,7 +5,6 @@ from typing import Any, Protocol
 from kubernetes import client, config
 
 STRATEGIC_MERGE = "application/strategic-merge-patch+json"
-
 
 class Cluster(Protocol):
     def get_deployment(self, namespace: str, name: str) -> dict: ...
@@ -35,7 +32,6 @@ class KubeCluster:
         return self._plain(self._apps.read_namespaced_deployment(name, namespace))
 
     def patch_deployment(self, namespace: str, name: str, body: dict) -> None:
-        # strategic merge: the containers list is merged by container name instead of replaced
         self._apps.patch_namespaced_deployment(name, namespace, body, _content_type=STRATEGIC_MERGE)
 
     def list_pods(self, namespace: str, label_selector: str) -> list[dict]:

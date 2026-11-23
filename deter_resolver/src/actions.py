@@ -1,5 +1,3 @@
-"""The executors the lookup table can name. Each takes the request and returns an outcome;
-none of them verifies anything itself (verify.py does that for all of them)."""
 from __future__ import annotations
 
 import math
@@ -15,7 +13,6 @@ MIB = Decimal(2 ** 20)
 
 
 class ActionError(Exception):
-    """The action could not be carried out. By contract nothing was changed in the cluster."""
 
     def __init__(self, reason: str, **detail):
         super().__init__(reason)
@@ -91,7 +88,6 @@ def bump_memory_limit(cluster: Cluster, req: ActionRequest) -> ActionOutcome:
 
 
 def scale_deployment(cluster: Cluster, req: ActionRequest) -> ActionOutcome:
-    """Add replicas, up to a pre-approved ceiling (the horizontal counterpart of bump_memory_limit)."""
     add = int(req.params["add_replicas"])
     cap = int(req.params["max_replicas"])
     if add < 1:

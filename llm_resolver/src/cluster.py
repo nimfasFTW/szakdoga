@@ -1,8 +1,3 @@
-"""The only module that talks to the Kubernetes API. Everything else works on plain dicts,
-so the tools and the verification can be exercised against a fake cluster.
-
-Superset of deter_resolver/cluster.py: the deterministic resolver only ever patches a Deployment,
-the agent also has to read logs / events / ConfigMaps / Services and fix the last two."""
 from __future__ import annotations
 
 from typing import Any, Optional, Protocol
@@ -38,7 +33,7 @@ class KubeCluster:
         try:
             config.load_incluster_config()
         except config.ConfigException:
-            config.load_kube_config()   # local development
+            config.load_kube_config()  
         return cls(client.AppsV1Api(), client.CoreV1Api())
 
     def _plain(self, obj: Any) -> dict:
@@ -69,9 +64,6 @@ class KubeCluster:
     def list_services(self, namespace: str) -> list[dict]:
         return [self._plain(s) for s in self._core.list_namespaced_service(namespace).items]
 
-    # ---------- write ----------
-    # strategic merge: lists with a merge key (containers, env, service ports) are merged by that
-    # key instead of replaced, and a key set to null is removed
     def patch_deployment(self, namespace: str, name: str, body: dict) -> None:
         self._apps.patch_namespaced_deployment(name, namespace, body)
 

@@ -1,6 +1,3 @@
-# The LLM resolver investigates and changes workloads, so (like deter-resolver) this is a place with
-# write access. Namespace-scoped on purpose: it cannot touch anything outside `chaos`.
-# Deliberately NOT granted: secrets, create/delete of anything, and any cluster-wide permission.
 apiVersion: v1
 kind: ServiceAccount
 metadata:

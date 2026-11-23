@@ -38,7 +38,7 @@ prometheus:
 kube-state-metrics:
   prometheus:
     monitor:
-      interval: 2s             # the ServiceMonitor can override the global interval
+      interval: 2s            
       scrapeTimeout: 2s
 
 grafana:

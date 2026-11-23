@@ -1,11 +1,4 @@
-"""request -> validate -> agent investigates and fixes -> verify -> verdict.
-
-Same contract as deter_resolver/resolver.py, so the dispatcher can treat both resolvers alike.
-The one difference is who decides what to do: there is no `action` in the request, the agent
-works it out from the cluster state.
-
-The verdict never trusts the agent. Whatever it reports in its final message, status comes from
-verify.wait_until_healthy run on the workload that alerted."""
+"""request -> validate -> agent investigates and fixes -> verify -> verdict."""
 from __future__ import annotations
 
 import json
@@ -39,7 +32,6 @@ class ResolverConfig:
 
 
 class ResolveError(Exception):
-    """The request cannot be handled. By contract nothing was changed in the cluster."""
 
     def __init__(self, reason: str, **detail):
         super().__init__(reason)
@@ -49,13 +41,6 @@ class ResolveError(Exception):
 
 @dataclass(frozen=True)
 class IncidentRequest:
-    """What the resolver needs to know. Deliberately a subset of the deterministic resolver's
-    request: `action` and `params` are ignored, there is no playbook to execute.
-
-        {"incident": "...",
-         "target": {"namespace": "chaos", "name": "uc3-client", "kind": "Deployment", "container": "..."},
-         "context": {...anything the caller knows: alertname, pod, attempt, what was already tried...}}
-    """
     incident: str
     namespace: str
     kind: str
@@ -126,14 +111,11 @@ def resolve(raw: dict, cluster: Cluster, cfg: ResolverConfig, clock: Clock,
         return verdict("error", reason="agent_failed", error=run.error, steps=run.steps,
                        tool_calls=toolkit.calls)
 
-    # Verify the workload that alerted, whatever the agent says. If it changed something, give the
-    # change time to take effect; if it did not (decided it cannot fix it, or the problem went away
-    # on its own), just ask whether the workload is healthy right now, i.e. one stability window.
     timeout = cfg.verify_timeout_s if applied else cfg.stable_s + 2 * cfg.poll_s
     result = wait_until_healthy(cluster, req.namespace, req.name, timeout_s=timeout,
                                 stable_s=cfg.stable_s, poll_s=cfg.poll_s, clock=clock,
                                 saturation=saturation, max_cpu_util=cfg.max_cpu_util)
-    # the moment the LAST change landed: a fix that needs several steps (e.g. ConfigMap + restart) is in place then
+    
     applied_after = round(toolkit.last_change_at - t0, 1) if toolkit.last_change_at is not None else None
 
     detail = {

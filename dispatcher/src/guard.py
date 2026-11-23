@@ -1,11 +1,3 @@
-"""At most one in-flight incident per workload.
-
-Why it is needed: one crash-looping pod raises two alerts (CrashLooping + NotReady), Alertmanager
-re-sends firing alerts every repeat_interval, and our own fix creates a new pod that raises alerts
-of its own. Without this, the same playbook would run several times for a single incident.
-
-The lease is a safety net: if a worker dies without releasing, the lock expires on its own.
-"""
 from __future__ import annotations
 
 import threading

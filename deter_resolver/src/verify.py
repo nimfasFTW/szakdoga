@@ -1,13 +1,3 @@
-"""Verification: did the action actually fix the workload?
-
-'Healthy' means the Deployment finished rolling out, every replica is ready, and the pods
-did not restart for `stable_s` seconds. The stability window matters: a pod that gets
-OOM-killed a couple of seconds after start is Ready for a moment between crashes, so a single
-'ready' reading would report a false success.
-
-We look at the workload, not at the alert: pod names change on every rollout, and
-whether the monitoring has re-evaluated yet should not decide our verdict.
-"""
 from __future__ import annotations
 
 import logging

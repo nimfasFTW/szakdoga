@@ -7,10 +7,10 @@ from concurrent.futures import ThreadPoolExecutor
 from flask import Flask, jsonify
 
 UC1_ENV_CODE = "uc1"
-UC1_ALLOCATED_MEM_SIZE = 75  # in MiB (+~36 MiB interpreter/flask overhead: needs ~111 > 100Mi limit, fits in 125Mi)
+UC1_ALLOCATED_MEM_SIZE = 75  
 
 UC2_ENV_CODE = "uc2"
-UC2_ALLOCATED_MEM_SIZE = 160  # needs ~196: more than +25% (125Mi), fits in the second tier (250Mi)
+UC2_ALLOCATED_MEM_SIZE = 160  
 
 UC3_ENV_CODE_SERVER = "uc3_server"
 UC3_ENV_CODE_CLIENT = "uc3_client"
@@ -26,8 +26,8 @@ UC8_ENV_CODE_CLIENT = "uc8_client"
 UC8_HEARTBEAT_STALE_AFTER = 5  # seconds without a heartbeat -> db worker is considered stuck
 UC8_ADMIN_PORT = 9000
 
-UC9_ENV_CODE = "uc9"            # the application that gets overloaded
-UC9_LOAD_ENV_CODE = "uc9_load"  # the load generator
+UC9_ENV_CODE = "uc9"           
+UC9_LOAD_ENV_CODE = "uc9_load"  
 UC9_DEFAULT_WORK_MS = 50        # CPU time one /work request burns
 UC9_DEFAULT_MAX_IN_FLIGHT = 8   # above this the app sheds load instead of queueing forever
 

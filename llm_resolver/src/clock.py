@@ -1,4 +1,3 @@
-"""Time source that tests can replace, so a 60 s verification window runs instantly."""
 import time
 
 

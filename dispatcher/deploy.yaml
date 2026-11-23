@@ -5,14 +5,14 @@ metadata:
   namespace: control
 data:
   WATCHED_NAMESPACES: "chaos"
-  DISPATCH_MODE: "hybrid"                    # deterministic | hybrid | llm
+  DISPATCH_MODE: "llm"                    # deterministic | hybrid | llm
   DETER_RESOLVER_SVC_NAME: "deter-resolver"
   LLM_RESOLVER_SVC_NAME: "llm-resolver"
-  RESOLVER_TIMEOUT_S: "180"       # must exceed the longest verification window
-  LLM_RESOLVER_TIMEOUT_S: "300"   # LLM agent runs are slower; tune to your agent's worst case
-  LLM_MAX_ATTEMPTS: "2"           # LLM runs per incident before the dispatcher gives up
-  INCIDENT_LEASE_S: "360"         # must exceed BOTH timeouts, or a lock could expire mid-incident
-  ATTEMPT_TTL_S: "600"            # an abandoned incident is forgotten after this long
+  RESOLVER_TIMEOUT_S: "180"     
+  LLM_RESOLVER_TIMEOUT_S: "300"  
+  LLM_MAX_ATTEMPTS: "2"         
+  INCIDENT_LEASE_S: "360"        
+  ATTEMPT_TTL_S: "600"       
 
 ---
 

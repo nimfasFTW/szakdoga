@@ -1,0 +1,126 @@
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2026-11-23 23:11:34 - INFO - request {"context": {"alertname": "ChaosPodCrashLooping", "attempt": 0, "facts": {"alertname": "ChaosPodCrashLooping", "container": "uc1", "exit_code": 137, "namespace": "chaos", "phase": "Running", "pod": "uc1-deployment-d7564bcd5-dgx46", "pod_found": true, "ready": false, "restart_count": 1, "termination_reason": "OOMKilled", "waiting_reason": "CrashLoopBackOff", "workload_kind": "Deployment", "workload_name": "uc1-deployment"}, "llm_attempt": 0, "pod": "uc1-deployment-d7564bcd5-dgx46", "reason": "no playbook matches Signature(alertname='ChaosPodCrashLooping', waiting_reason='CrashLoopBackOff', termination_reason='OOMKilled', attempt=0)", "signature": {"alertname": "ChaosPodCrashLooping", "attempt": 0, "termination_reason": "OOMKilled", "waiting_reason": "CrashLoopBackOff"}}, "incident": "chaos/Deployment/uc1-deployment#llm0", "target": {"container": "uc1", "kind": "Deployment", "name": "uc1-deployment", "namespace": "chaos"}}
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:11:42 - INFO - tool get_deployment {"deployment": "uc1-deployment"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:11:45 - INFO - tool get_configmap {"configmap": "uc1-config"} -> ok
+2026-11-23 23:11:45 - INFO - tool get_pods {"deployment": "uc1-deployment"} -> ok
+2026-11-23 23:11:45 - INFO - tool get_events {"name_prefix": "uc1"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:11:47 - INFO - tool get_pod_logs {"pod": "uc1-deployment-d7564bcd5-dgx46", "container": "uc1", "previous": true, "tail_lines": 50} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:11:50 - INFO - tool get_pod_logs {"pod": "uc1-deployment-d7564bcd5-dgx46", "container": "uc1", "previous": false, "tail_lines": 50} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:11:53 - INFO - tool list_workloads {} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:11:56 - INFO - tool list_services {} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:12:04 - INFO - tool set_container_resources {"deployment": "uc1-deployment", "container": "uc1", "memory_limit": "512Mi", "memory_request": "256Mi", "cpu_limit": null, "cpu_request": null} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:12:20 - INFO - tool check_health {"deployment": "uc1-deployment", "wait_s": 15} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:12:24 - INFO - tool get_pods {"deployment": "uc1-deployment"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:12:26 - INFO - tool get_pod_logs {"pod": "uc1-deployment-5458dbf7cc-ngkwb", "container": "uc1", "previous": false, "tail_lines": 100} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:12:39 - INFO - tool check_health {"deployment": "uc1-deployment", "wait_s": 30} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:12:42 - INFO - tool get_pods {"deployment": "uc1-deployment"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:12:45 - INFO - tool get_deployment {"deployment": "uc1-deployment"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:12:47 - INFO - tool get_events {"name_prefix": "uc1"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:13:01 - INFO - tool check_health {"deployment": "uc1-deployment", "wait_s": 10} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:13:15 - INFO - verdict {"action": "llm_agent", "action_applied_after_s": 29.4, "applied": true, "detail": {"changes": [{"change": "uc1-deployment/uc1: {'limits': {'memory': '100Mi'}, 'requests': {'memory': '100Mi'}} + {'limits': {'memory': '512Mi'}, 'requests': {'memory': '256Mi'}}", "tool": "set_container_resources"}], "llm": {"input_tokens": 90384, "model": "gemini-3.7-flash", "output_tokens": 1634, "steps": 16}, "summary": "ROOT CAUSE: The memory limit for container uc1 was set too low (100Mi), causing the container process to be OOMKilled immediately upon startup.\nACTIONS: Increased container uc1 memory request to 256Mi and memory limit to 512Mi on Deployment uc1-deployment.\nOUTCOME: healthy", "tool_calls": [{"args": {"deployment": "uc1-deployment"}, "ok": true, "tool": "get_deployment"}, {"args": {"configmap": "uc1-config"}, "ok": true, "tool": "get_configmap"}, {"args": {"deployment": "uc1-deployment"}, "ok": true, "tool": "get_pods"}, {"args": {"name_prefix": "uc1"}, "ok": true, "tool": "get_events"}, {"args": {"container": "uc1", "pod": "uc1-deployment-d7564bcd5-dgx46", "previous": true, "tail_lines": 50}, "ok": true, "tool": "get_pod_logs"}, {"args": {"container": "uc1", "pod": "uc1-deployment-d7564bcd5-dgx46", "previous": false, "tail_lines": 50}, "ok": true, "tool": "get_pod_logs"}, {"args": {}, "ok": true, "tool": "list_workloads"}, {"args": {}, "ok": true, "tool": "list_services"}, {"args": {"container": "uc1", "cpu_limit": null, "cpu_request": null, "deployment": "uc1-deployment", "memory_limit": "512Mi", "memory_request": "256Mi"}, "ok": true, "tool": "set_container_resources"}, {"args": {"deployment": "uc1-deployment", "wait_s": 15}, "ok": true, "tool": "check_health"}, {"args": {"deployment": "uc1-deployment"}, "ok": true, "tool": "get_pods"}, {"args": {"container": "uc1", "pod": "uc1-deployment-5458dbf7cc-ngkwb", "previous": false, "tail_lines": 100}, "ok": true, "tool": "get_pod_logs"}, {"args": {"deployment": "uc1-deployment", "wait_s": 30}, "ok": true, "tool": "check_health"}, {"args": {"deployment": "uc1-deployment"}, "ok": true, "tool": "get_pods"}, {"args": {"deployment": "uc1-deployment"}, "ok": true, "tool": "get_deployment"}, {"args": {"name_prefix": "uc1"}, "ok": true, "tool": "get_events"}, {"args": {"deployment": "uc1-deployment", "wait_s": 10}, "ok": true, "tool": "check_health"}], "verification": {"cpu_check": "unknown", "healthy": true, "waited_s": 10.0}}, "duration_s": 100.3, "finished_at": "2026-11-23T23:13:15+00:00", "incident": "chaos/Deployment/uc1-deployment#llm0", "started_at": "2026-11-23T23:11:35+00:00", "status": "resolved"}
+INFO:     10.244.0.209:59422 - "POST /resolve HTTP/1.1" 200 OK
+2026-11-23 23:15:24 - INFO - request {"context": {"alertname": "ChaosPodCrashLooping", "attempt": 0, "facts": {"alertname": "ChaosPodCrashLooping", "container": "uc2", "exit_code": 137, "namespace": "chaos", "phase": "Running", "pod": "uc2-deployment-6579d84cb8-mqm7c", "pod_found": true, "ready": false, "restart_count": 1, "termination_reason": "OOMKilled", "waiting_reason": "CrashLoopBackOff", "workload_kind": "Deployment", "workload_name": "uc2-deployment"}, "llm_attempt": 0, "pod": "uc2-deployment-6579d84cb8-mqm7c", "reason": "no playbook matches Signature(alertname='ChaosPodCrashLooping', waiting_reason='CrashLoopBackOff', termination_reason='OOMKilled', attempt=0)", "signature": {"alertname": "ChaosPodCrashLooping", "attempt": 0, "termination_reason": "OOMKilled", "waiting_reason": "CrashLoopBackOff"}}, "incident": "chaos/Deployment/uc2-deployment#llm0", "target": {"container": "uc2", "kind": "Deployment", "name": "uc2-deployment", "namespace": "chaos"}}
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:15:28 - INFO - tool list_workloads {} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:15:30 - INFO - tool get_deployment {"deployment": "uc2-deployment"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:15:33 - INFO - tool get_pods {"deployment": "uc2-deployment"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:15:36 - INFO - tool get_configmap {"configmap": "uc2-config"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:15:40 - INFO - tool get_pod_logs {"pod": "uc2-deployment-6579d84cb8-mqm7c", "container": null, "previous": true, "tail_lines": 80} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:15:42 - INFO - tool get_pod_logs {"pod": "uc2-deployment-6579d84cb8-mqm7c", "container": null, "previous": false, "tail_lines": 80} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:15:45 - INFO - tool get_events {"name_prefix": null} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:15:50 - INFO - tool list_services {} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:15:52 - INFO - tool get_pods {"deployment": "uc2-deployment"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:16:06 - INFO - tool set_container_resources {"deployment": "uc2-deployment", "container": "uc2", "memory_limit": "512Mi", "memory_request": "256Mi", "cpu_limit": null, "cpu_request": null} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:16:22 - INFO - tool check_health {"deployment": "uc2-deployment", "wait_s": 30} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:16:25 - INFO - tool get_pods {"deployment": "uc2-deployment"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:16:27 - INFO - tool get_pod_logs {"pod": "uc2-deployment-55c96d96-v8v2l", "container": null, "previous": false, "tail_lines": 80} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:16:30 - INFO - tool get_cpu_usage {"deployment": "uc2-deployment"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:16:44 - INFO - tool check_health {"deployment": "uc2-deployment", "wait_s": 15} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:16:47 - INFO - tool get_pods {"deployment": "uc2-deployment"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:17:00 - INFO - verdict {"action": "llm_agent", "action_applied_after_s": 41.9, "applied": true, "detail": {"changes": [{"change": "uc2-deployment/uc2: {'limits': {'memory': '100Mi'}, 'requests': {'memory': '100Mi'}} + {'limits': {'memory': '512Mi'}, 'requests': {'memory': '256Mi'}}", "tool": "set_container_resources"}], "llm": {"input_tokens": 120174, "model": "gemini-3.7-flash", "output_tokens": 2145, "steps": 17}, "summary": "ROOT CAUSE: The uc2 container's memory limit was configured to 100Mi, which was insufficient for the application process, causing it to be repeatedly killed by the OOM killer (exit code 137).\nACTIONS: Increased memory requests to 256Mi and memory limits to 512Mi on the uc2 container in Deployment uc2-deployment.\nOUTCOME: healthy", "tool_calls": [{"args": {}, "ok": true, "tool": "list_workloads"}, {"args": {"deployment": "uc2-deployment"}, "ok": true, "tool": "get_deployment"}, {"args": {"deployment": "uc2-deployment"}, "ok": true, "tool": "get_pods"}, {"args": {"configmap": "uc2-config"}, "ok": true, "tool": "get_configmap"}, {"args": {"container": null, "pod": "uc2-deployment-6579d84cb8-mqm7c", "previous": true, "tail_lines": 80}, "ok": true, "tool": "get_pod_logs"}, {"args": {"container": null, "pod": "uc2-deployment-6579d84cb8-mqm7c", "previous": false, "tail_lines": 80}, "ok": true, "tool": "get_pod_logs"}, {"args": {"name_prefix": null}, "ok": true, "tool": "get_events"}, {"args": {}, "ok": true, "tool": "list_services"}, {"args": {"deployment": "uc2-deployment"}, "ok": true, "tool": "get_pods"}, {"args": {"container": "uc2", "cpu_limit": null, "cpu_request": null, "deployment": "uc2-deployment", "memory_limit": "512Mi", "memory_request": "256Mi"}, "ok": true, "tool": "set_container_resources"}, {"args": {"deployment": "uc2-deployment", "wait_s": 30}, "ok": true, "tool": "check_health"}, {"args": {"deployment": "uc2-deployment"}, "ok": true, "tool": "get_pods"}, {"args": {"container": null, "pod": "uc2-deployment-55c96d96-v8v2l", "previous": false, "tail_lines": 80}, "ok": true, "tool": "get_pod_logs"}, {"args": {"deployment": "uc2-deployment"}, "ok": true, "tool": "get_cpu_usage"}, {"args": {"deployment": "uc2-deployment", "wait_s": 15}, "ok": true, "tool": "check_health"}, {"args": {"deployment": "uc2-deployment"}, "ok": true, "tool": "get_pods"}], "verification": {"cpu_check": "unknown", "healthy": true, "waited_s": 10.0}}, "duration_s": 95.8, "finished_at": "2026-11-23T23:17:00+00:00", "incident": "chaos/Deployment/uc2-deployment#llm0", "started_at": "2026-11-23T23:15:24+00:00", "status": "resolved"}
+INFO:     10.244.0.209:46314 - "POST /resolve HTTP/1.1" 200 OK
+2026-11-23 23:19:54 - INFO - request {"context": {"alertname": "ChaosPodCPUSaturated", "attempt": 0, "facts": {"alertname": "ChaosPodCPUSaturated", "container": "uc9", "exit_code": null, "namespace": "chaos", "phase": "Running", "pod": "uc9-58c7c5cc98-8dllj", "pod_found": true, "ready": true, "restart_count": 0, "termination_reason": null, "waiting_reason": null, "workload_kind": "Deployment", "workload_name": "uc9"}, "llm_attempt": 0, "pod": "uc9-58c7c5cc98-8dllj", "reason": "no playbook matches Signature(alertname='ChaosPodCPUSaturated', waiting_reason=None, termination_reason=None, attempt=0)", "signature": {"alertname": "ChaosPodCPUSaturated", "attempt": 0, "termination_reason": null, "waiting_reason": null}}, "incident": "chaos/Deployment/uc9#llm0", "target": {"container": "uc9", "kind": "Deployment", "name": "uc9", "namespace": "chaos"}}
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:20:00 - INFO - tool list_workloads {} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:20:03 - INFO - tool get_deployment {"deployment": "uc9"} -> ok
+2026-11-23 23:20:03 - INFO - tool get_cpu_usage {"deployment": "uc9"} -> ok
+2026-11-23 23:20:03 - INFO - tool get_pods {"deployment": "uc9"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:20:05 - INFO - tool get_configmap {"configmap": "uc9-load-config"} -> ok
+2026-11-23 23:20:05 - INFO - tool list_services {} -> ok
+2026-11-23 23:20:05 - INFO - tool get_configmap {"configmap": "uc9-config"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:20:09 - INFO - tool get_pods {"deployment": "uc9-load"} -> ok
+2026-11-23 23:20:09 - INFO - tool get_pod_logs {"pod": "uc9-58c7c5cc98-8dllj", "container": null, "previous": false, "tail_lines": 50} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:20:15 - INFO - tool check_health {"deployment": "uc9", "wait_s": 0} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:20:18 - INFO - tool get_cpu_usage {"deployment": "uc9"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:20:22 - INFO - tool get_cpu_usage {"deployment": "uc9"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:20:36 - INFO - tool get_events {"name_prefix": null} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:20:41 - INFO - tool scale_deployment {"deployment": "uc9", "replicas": 3} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:21:14 - INFO - tool check_health {"deployment": "uc9", "wait_s": 30} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:21:17 - INFO - tool get_cpu_usage {"deployment": "uc9"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:21:20 - INFO - tool get_pods {"deployment": "uc9"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:21:23 - INFO - tool get_pod_logs {"pod": "uc9-58c7c5cc98-hc8db", "container": null, "previous": false, "tail_lines": 10} -> ok
+2026-11-23 23:21:23 - INFO - tool get_pod_logs {"pod": "uc9-58c7c5cc98-z8s44", "container": null, "previous": false, "tail_lines": 10} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:21:57 - INFO - tool check_health {"deployment": "uc9", "wait_s": 30} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:22:01 - INFO - tool get_pods {"deployment": "uc9"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:22:34 - INFO - tool check_health {"deployment": "uc9", "wait_s": 30} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:22:38 - INFO - tool get_deployment {"deployment": "uc9"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:22:52 - INFO - tool check_health {"deployment": "uc9", "wait_s": 30} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:22:54 - INFO - tool check_health {"deployment": "uc9", "wait_s": 0} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-23 23:22:57 - INFO - tool get_cpu_usage {"deployment": "uc9"} -> ok
+2026-11-23 23:22:57 - WARNING - agent hit the step limit (20 model calls)
+2026-11-23 23:23:07 - INFO - verdict {"action": "llm_agent", "action_applied_after_s": 47.0, "applied": true, "detail": {"agent_error": "step_limit_reached", "changes": [{"change": "uc9: replicas 1 -> 3", "tool": "scale_deployment"}], "llm": {"input_tokens": 221491, "model": "gemini-3.7-flash", "output_tokens": 3805, "steps": 20}, "summary": "", "tool_calls": [{"args": {}, "ok": true, "tool": "list_workloads"}, {"args": {"deployment": "uc9"}, "ok": true, "tool": "get_deployment"}, {"args": {"deployment": "uc9"}, "ok": true, "tool": "get_cpu_usage"}, {"args": {"deployment": "uc9"}, "ok": true, "tool": "get_pods"}, {"args": {"configmap": "uc9-load-config"}, "ok": true, "tool": "get_configmap"}, {"args": {}, "ok": true, "tool": "list_services"}, {"args": {"configmap": "uc9-config"}, "ok": true, "tool": "get_configmap"}, {"args": {"deployment": "uc9-load"}, "ok": true, "tool": "get_pods"}, {"args": {"container": null, "pod": "uc9-58c7c5cc98-8dllj", "previous": false, "tail_lines": 50}, "ok": true, "tool": "get_pod_logs"}, {"args": {"deployment": "uc9", "wait_s": 0}, "ok": true, "tool": "check_health"}, {"args": {"deployment": "uc9"}, "ok": true, "tool": "get_cpu_usage"}, {"args": {"deployment": "uc9"}, "ok": true, "tool": "get_cpu_usage"}, {"args": {"name_prefix": null}, "ok": true, "tool": "get_events"}, {"args": {"deployment": "uc9", "replicas": 3}, "ok": true, "tool": "scale_deployment"}, {"args": {"deployment": "uc9", "wait_s": 30}, "ok": true, "tool": "check_health"}, {"args": {"deployment": "uc9"}, "ok": true, "tool": "get_cpu_usage"}, {"args": {"deployment": "uc9"}, "ok": true, "tool": "get_pods"}, {"args": {"container": null, "pod": "uc9-58c7c5cc98-hc8db", "previous": false, "tail_lines": 10}, "ok": true, "tool": "get_pod_logs"}, {"args": {"container": null, "pod": "uc9-58c7c5cc98-z8s44", "previous": false, "tail_lines": 10}, "ok": true, "tool": "get_pod_logs"}, {"args": {"deployment": "uc9", "wait_s": 30}, "ok": true, "tool": "check_health"}, {"args": {"deployment": "uc9"}, "ok": true, "tool": "get_pods"}, {"args": {"deployment": "uc9", "wait_s": 30}, "ok": true, "tool": "check_health"}, {"args": {"deployment": "uc9"}, "ok": true, "tool": "get_deployment"}, {"args": {"deployment": "uc9", "wait_s": 30}, "ok": true, "tool": "check_health"}, {"args": {"deployment": "uc9", "wait_s": 0}, "ok": true, "tool": "check_health"}, {"args": {"deployment": "uc9"}, "ok": true, "tool": "get_cpu_usage"}], "verification": {"cpu_check": "ok", "healthy": true, "max_cpu_utilisation": 0.35, "waited_s": 10.0}}, "duration_s": 193.3, "finished_at": "2026-11-23T23:23:07+00:00", "incident": "chaos/Deployment/uc9#llm0", "started_at": "2026-11-23T23:19:54+00:00", "status": "resolved"}
+INFO:     10.244.0.209:35670 - "POST /resolve HTTP/1.1" 200 OK

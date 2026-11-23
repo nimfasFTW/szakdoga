@@ -4,11 +4,6 @@ import threading
 import time
 from typing import Callable, Optional
 
-# How many fast-loop actions were already taken on a workload for the current incident.
-# The count expires after `ttl_s` without activity, so an incident that was abandoned
-# (e.g. the playbook ran out) does not poison the next, unrelated failure of the same workload.
-
-
 class AttemptStore:
     def __init__(self, ttl_s: Optional[float] = 600.0, clock: Callable[[], float] = time.monotonic) -> None:
         self._entries: dict[str, tuple[int, float]] = {}   # key -> (count, last_update)
