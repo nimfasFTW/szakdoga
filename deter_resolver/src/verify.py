@@ -59,6 +59,7 @@ def wait_until_healthy(cluster: Cluster, namespace: str, name: str, *, timeout_s
     stable_since = None
     baseline = 0
     last: Health | None = None
+    cpu_check = "off" if saturation is None else "unknown"   # off | unknown | ok | saturated
     while True:
         t = clock.now()
         try:
@@ -70,16 +71,18 @@ def wait_until_healthy(cluster: Cluster, namespace: str, name: str, *, timeout_s
         if last is not None and last.ready and saturation is not None:
             util = saturation.max_cpu_utilisation(namespace, list(last.pods))
         saturated = util is not None and util > max_cpu_util
+        if saturation is not None and last is not None and last.ready:
+            cpu_check = "unknown" if util is None else ("saturated" if saturated else "ok")
         if last is not None and last.ready and not saturated:
             if stable_since is None or last.restarts > baseline:
                 stable_since, baseline = t, last.restarts   # (re)start the stability clock
             if t - stable_since >= stable_s:
-                return {"healthy": True, "waited_s": round(t - start, 1),
+                return {"healthy": True, "waited_s": round(t - start, 1), "cpu_check": cpu_check,
                         **({} if util is None else {"max_cpu_utilisation": round(util, 2)})}
         else:
             stable_since = None
         if t - start >= timeout_s:
-            return {"healthy": False, "waited_s": round(t - start, 1),
+            return {"healthy": False, "waited_s": round(t - start, 1), "cpu_check": cpu_check,
                     "last": None if last is None else
                     {"rolled_out": last.rolled_out, "ready": last.ready, "restarts": last.restarts,
                      **({} if util is None else {"max_cpu_utilisation": round(util, 2)})}}

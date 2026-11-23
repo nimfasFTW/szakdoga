@@ -54,13 +54,13 @@ spec:
         # this alert compared to the kube-state-metrics based ones.
         - alert: ChaosPodCPUSaturated
           expr: |
-            sum by (namespace, pod, container) (
-              rate(container_cpu_usage_seconds_total{
-                namespace="chaos", container!="", container!="POD"
-              }[30s])
+            sum by (namespace, pod) (
+              rate(container_cpu_usage_seconds_total{namespace="chaos"}[30s])
             )
-            / on (namespace, pod, container)
-            kube_pod_container_resource_limits{namespace="chaos", resource="cpu"}
+            /
+            sum by (namespace, pod) (
+              kube_pod_container_resource_limits{namespace="chaos", resource="cpu"}
+            )
             > 0.9
           for: 5s
           labels:

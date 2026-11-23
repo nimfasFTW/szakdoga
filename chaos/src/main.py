@@ -29,7 +29,7 @@ UC8_ADMIN_PORT = 9000
 UC9_ENV_CODE = "uc9"            # the application that gets overloaded
 UC9_LOAD_ENV_CODE = "uc9_load"  # the load generator
 UC9_DEFAULT_WORK_MS = 50        # CPU time one /work request burns
-UC9_DEFAULT_MAX_IN_FLIGHT = 20  # above this the app sheds load instead of queueing forever
+UC9_DEFAULT_MAX_IN_FLIGHT = 8   # above this the app sheds load instead of queueing forever
 
 uc9_in_flight = 0
 uc9_lock = threading.Lock()
@@ -78,7 +78,7 @@ def readiness():
     uc_code = os.environ["UC_CODE"]
 
     if uc_code == UC9_ENV_CODE:
-        # deliberately independent of the load: a saturated pod is slow, not broken
+        # always ready (the manifest has no readiness probe; this is only for manual checks)
         return jsonify(status="ready"), 200
 
     if uc_code == UC8_ENV_CODE_SERVER:

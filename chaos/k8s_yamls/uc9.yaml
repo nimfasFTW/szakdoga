@@ -18,7 +18,7 @@ data:
   UC_CODE: "uc9"
   APP_PORT: "8080"
   UC9_WORK_MS: "50"
-  UC9_MAX_IN_FLIGHT: "20"
+  UC9_MAX_IN_FLIGHT: "8"      # few concurrent requests: less thread contention, latency stays below the 5 s client timeout
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -51,14 +51,10 @@ spec:
             limits:
               cpu: 250m
               memory: 256Mi
-          readinessProbe:
-            httpGet:
-              path: /ready
-              port: 8080
-            initialDelaySeconds: 2
-            periodSeconds: 5
-            timeoutSeconds: 3
-            failureThreshold: 3
+          # No readinessProbe on purpose. With one, the saturated (CPU-throttled) pod misses its probes,
+          # drops out of the Service, stops getting load, recovers, and flaps. Its CPU average then never
+          # stays above the alert threshold, and ChaosPodNotReady fires instead of ChaosPodCPUSaturated.
+          # UC9 is about capacity, so the pod must stay in the Service and simply be slow.
 ---
 apiVersion: v1
 kind: Service

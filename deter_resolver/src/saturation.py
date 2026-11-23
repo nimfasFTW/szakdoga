@@ -4,7 +4,7 @@ Why this exists: 'rolled out + ready + no restarts' (verify.py) is also true for
 overloaded but alive. For a load problem (UC-9) that definition would call 'did nothing' a success.
 So a workload only counts as healthy if none of its pods uses more than `max_cpu_util` of its CPU limit.
 
-Same expression family as the ChaosPodCPUSaturated alert, but evaluated by us per verification poll,
+Same expression as the ChaosPodCPUSaturated alert (pod level), but evaluated by us per verification poll,
 for the pods of ONE Deployment. We look at the workload's resource usage, not at whether the alert
 has cleared (the alert lags behind and its pod names change with every rollout).
 
@@ -36,12 +36,15 @@ class PrometheusSaturation:
         if not pods or not _SAFE.match(namespace) or not all(_SAFE.match(p) for p in pods):
             return None
         pod_re = "|".join(pods)
+        
         query = (
-            f'max(sum by (namespace, pod, container) (rate(container_cpu_usage_seconds_total'
-            f'{{namespace="{namespace}", pod=~"{pod_re}", container!="", container!="POD"}}[{self._window_s}s]))'
-            f' / on (namespace, pod, container) '
-            f'kube_pod_container_resource_limits{{namespace="{namespace}", resource="cpu"}})'
+            f'sum by (namespace, pod) (rate(container_cpu_usage_seconds_total'
+            f'{{namespace="{namespace}"}}[{self._window_s}s]))'
+            f' / on (namespace, pod) '
+            f'sum by (namespace, pod) (kube_pod_container_resource_limits'
+            f'{{namespace="{namespace}", resource="cpu"}})'
         )
+        
         try:
             r = self._http.get(self._url, params={"query": query}, timeout=self._timeout_s)
             r.raise_for_status()

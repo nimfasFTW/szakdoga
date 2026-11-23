@@ -1,0 +1,8 @@
+kubectl get pods -n chaos
+NAME                        READY   STATUS    RESTARTS   AGE
+uc9-58c7c5cc98-b68wc        1/1     Running   0          3m31s
+uc9-58c7c5cc98-bnjw6        1/1     Running   0          3m12s
+uc9-58c7c5cc98-d5kwz        1/1     Running   0          3m31s
+uc9-58c7c5cc98-g2g9r        1/1     Running   0          3m12s
+uc9-58c7c5cc98-zqhw6        1/1     Running   0          34m
+uc9-load-58fc7c88fb-k27w6   1/1     Running   0          33m
