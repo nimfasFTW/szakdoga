@@ -1,3 +1,7 @@
+# UC7: invalid external db url
+# the external db does not exist, the given url is wrong
+# the llm should find out that the given url is wrong, the issue cannot be fixed though
+
 apiVersion: v1
 kind: ConfigMap
 metadata:

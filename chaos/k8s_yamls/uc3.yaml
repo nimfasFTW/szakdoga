@@ -1,3 +1,7 @@
+# UC3: misconfigured db port
+# the db port the client tries to query is misconfigured, the readiness probe fails
+# llm should notice the typo and fix the port number
+
 apiVersion: v1
 kind: ConfigMap
 metadata:

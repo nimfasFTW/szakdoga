@@ -1,3 +1,7 @@
+# UC2: very low memory limit
+# the memory limit is set way too low, the deterministic workflow has to increase
+# small increase is not enough, bigger step applied
+
 apiVersion: v1
 kind: ConfigMap
 metadata:

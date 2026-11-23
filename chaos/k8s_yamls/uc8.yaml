@@ -1,3 +1,7 @@
+# UC8: transient issue
+# server a crashes, cannot serve requests. server b crashes almost immediately after, because it doesnt get responses.
+# llm should notice that the root cause is server a, and has nothing to do with server b. it is therefore sufficient to restart server a: see server b age in kubectl get 
+
 # ---------- app1: "db" server ----------
 apiVersion: v1
 kind: ConfigMap

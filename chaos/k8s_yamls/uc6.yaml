@@ -1,3 +1,6 @@
+# UC6: invalid image tag
+# image tag contains a typo. llm should notice and fix to an existing stable version
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:

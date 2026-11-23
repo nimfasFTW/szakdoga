@@ -1,3 +1,7 @@
+# UC4: low memory limit - non-fixable by deterministic
+# the mem limit is set too low, but neither deter fixes will solve the issue
+# there are two possible solutions: increase the mem limit or reduce the number of worker threads
+
 apiVersion: v1
 kind: ConfigMap
 metadata:

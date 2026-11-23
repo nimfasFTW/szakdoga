@@ -1,3 +1,7 @@
+# UC1: low memory limit
+# the memory limit is set too low, the deterministic workflow has to increase
+# small increase is enough
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
