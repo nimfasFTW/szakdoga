@@ -47,8 +47,8 @@ def wait_until_healthy(cluster: Cluster, namespace: str, name: str, *, timeout_s
                        saturation: Optional[Saturation] = None, max_cpu_util: float = 0.9,
                        cpu_required: bool = False) -> dict:
     """`cpu_required`: the incident IS a CPU incident (alert ChaosPodCPUSaturated). Then an unknown CPU
-    reading (Prometheus down, no data, check switched off) must not count as healthy: 'I could not
-    measure' is not 'it is fine'. For every other incident an unknown reading is skipped, as before."""
+    reading (Prometheus down, no data, check switched off) must not count as healthy.
+    For every other incident an unknown reading is skipped, as before."""
     start = clock.now()
     stable_since = None
     baseline = 0

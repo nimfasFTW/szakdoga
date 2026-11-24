@@ -41,13 +41,7 @@ class PrometheusSaturation:
             logger.warning("CPU saturation unknown (%s). URL=%s query=%s", problem, self._url, query)
 
     def max_cpu_utilisation(self, namespace: str, pods: Sequence[str]) -> Optional[float]:
-        """Highest (CPU usage / CPU limit) over the given pods, or None if unknown.
-
-        The query is deliberately plain (one ratio per pod of the whole namespace, no pod regex and no
-        container filter: that is the form that is proven to return data on Minikube). The scoping to
-        the pods of one Deployment is done here, in Python, and the maximum is taken explicitly.
-        Caveat: on a cluster whose cAdvisor exposes pod AND container level series, the usage would be
-        counted twice; this test bed (Minikube, Docker driver) exposes only the pod level."""
+        """Highest (CPU usage / CPU limit) over the given pods, or None if unknown."""
         self.problem = None
         if not pods or not _SAFE.match(namespace):
             self._unknown("unsafe_or_empty_names", "")

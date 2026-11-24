@@ -1,16 +1,6 @@
 # UC9: heavy load, no autoscaler.
 # This manifest is the HEALTHY starting state: one replica, a CPU limit, no HorizontalPodAutoscaler.
-# The fault is injected by applying uc9_load.yaml (delete it to stop the load).
-#
-# Capacity of one pod. A request burns 50 ms of CPU time in the busy loop (UC9_WORK_MS) but costs ~0.1 CPU-second
-# in total on Minikube (measured: 0.82 utilisation per pod at 5 replicas and 10 req/s => 2 req/s x 0.1 s / 0.25 CPU).
-# With a 250m limit one pod therefore serves at most ~2.5 req/s. The load generator sends 5 req/s (uc9_load.yaml):
-#   1 replica  -> ~200 % of the limit (saturated)
-#   2 replicas -> ~100 %               (still saturated)
-#   3 replicas -> ~67 %                (healthy, the first playbook tier +2 is enough)
-#   5 replicas -> ~40 %
-# At 10 req/s even the ceiling of 5 replicas sits at ~80-85 %, right at the threshold: do not use that.
-# Recalibrate UC9_RATE / UC9_WORK_MS / the CPU limit together if you change one of them.
+# The fault is injected by applying uc9_load.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
