@@ -5,7 +5,7 @@ metadata:
   namespace: control
 data:
   WATCHED_NAMESPACES: "chaos"
-  DISPATCH_MODE: "llm"                    # deterministic | hybrid | llm
+  DISPATCH_MODE: "hybrid"                    # deterministic | hybrid | llm
   DETER_RESOLVER_SVC_NAME: "deter-resolver"
   LLM_RESOLVER_SVC_NAME: "llm-resolver"
   RESOLVER_TIMEOUT_S: "180"     

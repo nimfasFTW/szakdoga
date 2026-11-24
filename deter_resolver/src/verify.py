@@ -44,12 +44,17 @@ def read_health(cluster: Cluster, namespace: str, name: str) -> Health:
 
 def wait_until_healthy(cluster: Cluster, namespace: str, name: str, *, timeout_s: float,
                        stable_s: float, poll_s: float, clock: Clock,
-                       saturation: Optional[Saturation] = None, max_cpu_util: float = 0.9) -> dict:
+                       saturation: Optional[Saturation] = None, max_cpu_util: float = 0.9,
+                       cpu_required: bool = False) -> dict:
+    """`cpu_required`: the incident IS a CPU incident (alert ChaosPodCPUSaturated). Then an unknown CPU
+    reading (Prometheus down, no data, check switched off) must not count as healthy: 'I could not
+    measure' is not 'it is fine'. For every other incident an unknown reading is skipped, as before."""
     start = clock.now()
     stable_since = None
     baseline = 0
     last: Health | None = None
     cpu_check = "off" if saturation is None else "unknown"   # off | unknown | ok | saturated
+    cpu_problem = None                                        # why it is 'unknown' (see saturation.py)
     while True:
         t = clock.now()
         try:
@@ -63,16 +68,20 @@ def wait_until_healthy(cluster: Cluster, namespace: str, name: str, *, timeout_s
         saturated = util is not None and util > max_cpu_util
         if saturation is not None and last is not None and last.ready:
             cpu_check = "unknown" if util is None else ("saturated" if saturated else "ok")
-        if last is not None and last.ready and not saturated:
+            cpu_problem = getattr(saturation, "problem", None) if util is None else None
+        cpu_blind = cpu_required and util is None
+        if last is not None and last.ready and not saturated and not cpu_blind:
             if stable_since is None or last.restarts > baseline:
                 stable_since, baseline = t, last.restarts   # (re)start the stability clock
             if t - stable_since >= stable_s:
                 return {"healthy": True, "waited_s": round(t - start, 1), "cpu_check": cpu_check,
+                        **({"cpu_problem": cpu_problem} if cpu_problem else {}),
                         **({} if util is None else {"max_cpu_utilisation": round(util, 2)})}
         else:
             stable_since = None
         if t - start >= timeout_s:
             return {"healthy": False, "waited_s": round(t - start, 1), "cpu_check": cpu_check,
+                    **({"cpu_problem": cpu_problem} if cpu_problem else {}),
                     "last": None if last is None else
                     {"rolled_out": last.rolled_out, "ready": last.ready, "restarts": last.restarts,
                      **({} if util is None else {"max_cpu_utilisation": round(util, 2)})}}

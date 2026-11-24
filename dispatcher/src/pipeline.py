@@ -65,6 +65,15 @@ def handle_alert(alert: dict, cfg: Config, inspector: Inspector,
         return {"outcome": "skipped", "alertname": alertname, "pod": pod,
                 "why": "pod no longer exists; it will re-alert if the problem persists"}
 
+    if facts.workload_kind != "Deployment":
+        # The pod belongs to a ReplicaSet without a Deployment (typically: the use case was just deleted and its
+        # pods are terminating) or to some other controller. The resolvers only handle Deployments and would
+        # answer 'unsupported_target', so do not take a lock or an attempt slot for it.
+        logger.info("skipped alert=%s pod=%s: workload %s/%s is not a Deployment", alertname, pod,
+                    facts.workload_kind, facts.workload_name)
+        return {"outcome": "skipped", "alertname": alertname, "pod": pod,
+                "why": f"workload kind {facts.workload_kind!r} is not handled (only Deployments)"}
+
     key = facts.workload_key
     if not guard.try_acquire(key):
         logger.info("in_flight alert=%s pod=%s workload=%s", alertname, pod, key)

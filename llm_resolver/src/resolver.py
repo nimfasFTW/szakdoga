@@ -26,6 +26,7 @@ class ResolverConfig:
     poll_s: float = 2.0
     verify_timeout_s: float = 60.0   # how long the final verification waits after the agent changed something
     max_steps: int = 20              # model calls the agent may use per incident
+    cpu_alerts: frozenset = frozenset({"ChaosPodCPUSaturated"})   # incidents that must be verified with CPU data
     prometheus_url: Optional[str] = None   # enables the CPU saturation criterion and the get_cpu_usage tool
     max_cpu_util: float = 0.9
     max_replicas: int = 5            # ceiling for scale_deployment (same as the deterministic playbook)
@@ -99,7 +100,8 @@ def resolve(raw: dict, cluster: Cluster, cfg: ResolverConfig, clock: Clock,
 
     saturation = PrometheusSaturation(cfg.prometheus_url) if cfg.prometheus_url else None
     toolkit = Toolkit(cluster, req.namespace, stable_s=cfg.stable_s, poll_s=cfg.poll_s, clock=clock,
-                      saturation=saturation, max_cpu_util=cfg.max_cpu_util, max_replicas=cfg.max_replicas)
+                      saturation=saturation, max_cpu_util=cfg.max_cpu_util, max_replicas=cfg.max_replicas,
+                      cpu_required=req.context.get("alertname") in cfg.cpu_alerts)
     try:
         run = investigate(build_prompt(req), toolkit.tools, cfg.max_steps)
     except Exception as e:   # could not even start (bad credentials, model init, ...): nothing was attempted
@@ -114,7 +116,8 @@ def resolve(raw: dict, cluster: Cluster, cfg: ResolverConfig, clock: Clock,
     timeout = cfg.verify_timeout_s if applied else cfg.stable_s + 2 * cfg.poll_s
     result = wait_until_healthy(cluster, req.namespace, req.name, timeout_s=timeout,
                                 stable_s=cfg.stable_s, poll_s=cfg.poll_s, clock=clock,
-                                saturation=saturation, max_cpu_util=cfg.max_cpu_util)
+                                saturation=saturation, max_cpu_util=cfg.max_cpu_util,
+                                cpu_required=req.context.get("alertname") in cfg.cpu_alerts)
     
     applied_after = round(toolkit.last_change_at - t0, 1) if toolkit.last_change_at is not None else None
 

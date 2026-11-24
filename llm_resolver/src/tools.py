@@ -205,10 +205,11 @@ class Toolkit:
 
     def __init__(self, cluster: Cluster, namespace: str, *, stable_s: float, poll_s: float,
                  clock: Clock, max_wait_s: float = 90.0, saturation: Optional[Saturation] = None,
-                 max_cpu_util: float = 0.9, max_replicas: int = 5) -> None:
+                 max_cpu_util: float = 0.9, max_replicas: int = 5, cpu_required: bool = False) -> None:
         self.saturation = saturation
         self.max_cpu_util = max_cpu_util
         self.max_replicas = max_replicas   # pre-approved ceiling, the same as in the deterministic playbook
+        self.cpu_required = cpu_required   # CPU incident: an unknown CPU reading is not 'healthy' (see verify.py)
         self.cluster = cluster
         self.namespace = namespace
         self.stable_s = stable_s
@@ -377,7 +378,8 @@ class Toolkit:
             wait = max(0.0, min(float(wait_s), self.max_wait_s))
             return _j(wait_until_healthy(c, ns, deployment, timeout_s=wait, stable_s=self.stable_s,
                                          poll_s=self.poll_s, clock=self.clock,
-                                         saturation=self.saturation, max_cpu_util=self.max_cpu_util))
+                                         saturation=self.saturation, max_cpu_util=self.max_cpu_util,
+                                         cpu_required=self.cpu_required))
 
         # ============================ write ============================
         @reg

@@ -20,6 +20,7 @@ class ResolverConfig:
     namespaces: frozenset[str]
     stable_s: float = 10.0
     poll_s: float = 2.0
+    cpu_alerts: frozenset = frozenset({"ChaosPodCPUSaturated"})   # incidents that must be verified with CPU data
     prometheus_url: Optional[str] = None  
     max_cpu_util: float = 0.9             
 
@@ -62,6 +63,7 @@ def resolve(raw: dict, cluster: Cluster, cfg: ResolverConfig, clock: Clock) -> d
     saturation = PrometheusSaturation(cfg.prometheus_url) if cfg.prometheus_url else None
     result = wait_until_healthy(cluster, req.namespace, req.name, timeout_s=outcome.verify_timeout_s,
                                 stable_s=cfg.stable_s, poll_s=cfg.poll_s, clock=clock,
-                                saturation=saturation, max_cpu_util=cfg.max_cpu_util)
+                                saturation=saturation, max_cpu_util=cfg.max_cpu_util,
+                                cpu_required=req.context.get("alertname") in cfg.cpu_alerts)
     return verdict("resolved" if result["healthy"] else "unresolved", outcome.applied, applied_after,
                    **outcome.detail, verification=result)

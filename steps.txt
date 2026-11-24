@@ -64,6 +64,7 @@ kubectl logs -n monitoring alertmanager-monitoring-kube-prometheus-alertmanager-
 
 tar --exclude=".venv" --exclude=".git" -czvf szakdoga.zip szakdoga/
 tar --exclude=".venv" -czvf /mnt/e/InformationTechnology/dispatcher.tar.gz dispatcher/
+tar --exclude=".venv" -czvf /mnt/e/InformationTechnology/szakdoga.tar.gz szakdoga/
 
 
 TODO:
