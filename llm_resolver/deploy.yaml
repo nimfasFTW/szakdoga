@@ -13,7 +13,8 @@ data:
   MAX_REPLICAS: "5"         # ceiling for the scale_deployment tool
   AGENT_MAX_STEPS: "20"    
   LLM_MODEL: "gemini-3.7-flash"
-  LLM_RPM: "20"             # max model calls per minute (free tier = 5). Set "0" to disable once you have a paid key
+  LLM_RPM: "0"             # max model calls per minute (free tier = 5). Set "0" to disable once you have a paid key
+  # LLM_RPM: "20"             # max model calls per minute (free tier = 5). Set "0" to disable once you have a paid key
 
 ---
 

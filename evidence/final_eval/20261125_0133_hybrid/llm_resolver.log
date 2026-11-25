@@ -1,0 +1,198 @@
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2026-11-25 00:12:26 - INFO - request {"context": {"alertname": "ChaosPodNotReady", "attempt": 0, "facts": {"alertname": "ChaosPodNotReady", "container": "uc3-client", "exit_code": null, "namespace": "chaos", "phase": "Running", "pod": "uc3-client-6456fdf75c-hl8ch", "pod_found": true, "ready": false, "restart_count": 0, "termination_reason": null, "waiting_reason": null, "workload_kind": "Deployment", "workload_name": "uc3-client"}, "llm_attempt": 0, "pod": "uc3-client-6456fdf75c-hl8ch", "reason": "no playbook matches Signature(alertname='ChaosPodNotReady', waiting_reason=None, termination_reason=None, attempt=0)", "signature": {"alertname": "ChaosPodNotReady", "attempt": 0, "termination_reason": null, "waiting_reason": null}}, "incident": "chaos/Deployment/uc3-client#llm0", "target": {"container": "uc3-client", "kind": "Deployment", "name": "uc3-client", "namespace": "chaos"}}
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:12:34 - INFO - tool list_workloads {} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:12:36 - INFO - tool get_pods {"deployment": "uc3-client"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:12:39 - INFO - tool get_pod_logs {"pod": "uc3-client-6456fdf75c-hl8ch", "container": null, "previous": false, "tail_lines": 80} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:12:43 - INFO - tool list_services {} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:12:46 - INFO - tool get_configmap {"configmap": "uc3-client-config"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:12:48 - INFO - tool get_configmap {"configmap": "uc3-server-config"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:12:52 - INFO - tool get_deployment {"deployment": "uc3-server"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:12:55 - INFO - tool get_deployment {"deployment": "uc3-client"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:13:01 - INFO - tool set_configmap_value {"configmap": "uc3-client-config", "key": "UC3_DB_PORT", "value": "5000"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:13:03 - INFO - tool restart_deployment {"deployment": "uc3-client"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:13:15 - WARNING - CPU saturation unknown (no_data). URL=http://monitoring-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090/api/v1/query query=sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{namespace="chaos"}[30s])) / on (namespace, pod) sum by (namespace, pod) (kube_pod_container_resource_limits{namespace="chaos", resource="cpu"})
+2026-11-25 00:13:25 - INFO - tool check_health {"deployment": "uc3-client", "wait_s": 60} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:13:31 - INFO - tool get_pods {"deployment": "uc3-client"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:13:34 - INFO - tool get_pod_logs {"pod": "uc3-client-df6f4f57f-nkglj", "container": null, "previous": false, "tail_lines": 80} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:13:46 - INFO - tool check_health {"deployment": "uc3-client", "wait_s": 10} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:13:48 - INFO - tool get_pods {"deployment": "uc3-client"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:14:03 - INFO - verdict {"action": "llm_agent", "action_applied_after_s": 37.1, "applied": true, "detail": {"changes": [{"change": "uc3-client-config[UC3_DB_PORT]: '5090' -> '5000'", "tool": "set_configmap_value"}, {"change": "uc3-client", "tool": "restart_deployment"}], "llm": {"input_tokens": 87300, "model": "gemini-3.7-flash", "output_tokens": 1756, "steps": 16}, "summary": "ROOT CAUSE: ConfigMap uc3-client-config configured UC3_DB_PORT as 5090 instead of 5000, causing uc3-client's readiness probe to fail when attempting to connect to uc3-server-service.\nACTIONS: Updated UC3_DB_PORT in ConfigMap uc3-client-config to 5000 and restarted Deployment uc3-client.\nOUTCOME: healthy", "tool_calls": [{"args": {}, "ok": true, "tool": "list_workloads"}, {"args": {"deployment": "uc3-client"}, "ok": true, "tool": "get_pods"}, {"args": {"container": null, "pod": "uc3-client-6456fdf75c-hl8ch", "previous": false, "tail_lines": 80}, "ok": true, "tool": "get_pod_logs"}, {"args": {}, "ok": true, "tool": "list_services"}, {"args": {"configmap": "uc3-client-config"}, "ok": true, "tool": "get_configmap"}, {"args": {"configmap": "uc3-server-config"}, "ok": true, "tool": "get_configmap"}, {"args": {"deployment": "uc3-server"}, "ok": true, "tool": "get_deployment"}, {"args": {"deployment": "uc3-client"}, "ok": true, "tool": "get_deployment"}, {"args": {"configmap": "uc3-client-config", "key": "UC3_DB_PORT", "value": "5000"}, "ok": true, "tool": "set_configmap_value"}, {"args": {"deployment": "uc3-client"}, "ok": true, "tool": "restart_deployment"}, {"args": {"deployment": "uc3-client", "wait_s": 60}, "ok": true, "tool": "check_health"}, {"args": {"deployment": "uc3-client"}, "ok": true, "tool": "get_pods"}, {"args": {"container": null, "pod": "uc3-client-df6f4f57f-nkglj", "previous": false, "tail_lines": 80}, "ok": true, "tool": "get_pod_logs"}, {"args": {"deployment": "uc3-client", "wait_s": 10}, "ok": true, "tool": "check_health"}, {"args": {"deployment": "uc3-client"}, "ok": true, "tool": "get_pods"}], "verification": {"cpu_check": "unknown", "cpu_problem": "no_data", "healthy": true, "waited_s": 10.0}}, "duration_s": 96.5, "finished_at": "2026-11-25T00:14:03+00:00", "incident": "chaos/Deployment/uc3-client#llm0", "started_at": "2026-11-25T00:12:26+00:00", "status": "resolved"}
+INFO:     10.244.1.154:52400 - "POST /resolve HTTP/1.1" 200 OK
+2026-11-25 00:17:10 - INFO - request {"context": {"alertname": "ChaosPodNotReady", "attempt": 2, "facts": {"alertname": "ChaosPodNotReady", "container": "uc4", "exit_code": 137, "namespace": "chaos", "phase": "Running", "pod": "uc4-deployment-86f78b4f66-z8t98", "pod_found": true, "ready": false, "restart_count": 4, "termination_reason": "OOMKilled", "waiting_reason": "CrashLoopBackOff", "workload_kind": "Deployment", "workload_name": "uc4-deployment"}, "llm_attempt": 0, "pod": "uc4-deployment-86f78b4f66-z8t98", "reason": "no playbook matches Signature(alertname='ChaosPodNotReady', waiting_reason='CrashLoopBackOff', termination_reason='OOMKilled', attempt=2)", "signature": {"alertname": "ChaosPodNotReady", "attempt": 2, "termination_reason": "OOMKilled", "waiting_reason": "CrashLoopBackOff"}}, "incident": "chaos/Deployment/uc4-deployment#llm0", "target": {"container": "uc4", "kind": "Deployment", "name": "uc4-deployment", "namespace": "chaos"}}
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:17:13 - INFO - tool list_workloads {} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:17:16 - INFO - tool get_deployment {"deployment": "uc4-deployment"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:17:19 - INFO - tool get_pods {"deployment": "uc4-deployment"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:17:21 - INFO - tool get_configmap {"configmap": "uc4-config"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:17:25 - INFO - tool get_pod_logs {"pod": "uc4-deployment-9f758ffc5-jc2mw", "container": null, "previous": true, "tail_lines": 80} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:17:28 - INFO - tool get_events {"name_prefix": "uc4"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:17:32 - INFO - tool list_services {} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:18:01 - INFO - tool set_container_resources {"deployment": "uc4-deployment", "container": "uc4", "memory_limit": "512Mi", "memory_request": "256Mi", "cpu_limit": null, "cpu_request": null} -> FAILED (ERROR: Kubernetes API 404: deployments.apps "uc4-deployment" not found)
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:18:04 - INFO - tool list_workloads {} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:18:07 - INFO - tool get_deployment {"deployment": "uc6"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:18:10 - INFO - tool get_events {"name_prefix": null} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:18:13 - INFO - tool list_workloads {} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:18:18 - WARNING - health read failed: NotFoundException()
+2026-11-25 00:18:18 - INFO - tool check_health {"deployment": "uc4-deployment", "wait_s": 0} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:18:24 - WARNING - health read failed: NotFoundException()
+2026-11-25 00:18:26 - WARNING - health read failed: NotFoundException()
+2026-11-25 00:18:28 - WARNING - health read failed: NotFoundException()
+2026-11-25 00:18:30 - WARNING - health read failed: NotFoundException()
+2026-11-25 00:18:32 - WARNING - health read failed: NotFoundException()
+2026-11-25 00:18:34 - WARNING - health read failed: NotFoundException()
+2026-11-25 00:18:36 - WARNING - health read failed: NotFoundException()
+2026-11-25 00:18:38 - WARNING - health read failed: NotFoundException()
+2026-11-25 00:18:38 - INFO - verdict {"action": "llm_agent", "action_applied_after_s": null, "applied": false, "detail": {"changes": [], "llm": {"input_tokens": 128527, "model": "gemini-3.7-flash", "output_tokens": 5148, "steps": 14}, "summary": "ROOT CAUSE: The uc4 container was configured via ConfigMap uc4-config to spawn 5 worker threads allocating 50 MiB each (250 MiB plus runtime overhead), exceeding the Deployment's memory limit of 256Mi and causing the container to be repeatedly OOMKilled.\nACTIONS: none\nOUTCOME: not fixed, Deployment uc4-deployment was deleted from the cluster by an external process during remediation and no longer exists.", "tool_calls": [{"args": {}, "ok": true, "tool": "list_workloads"}, {"args": {"deployment": "uc4-deployment"}, "ok": true, "tool": "get_deployment"}, {"args": {"deployment": "uc4-deployment"}, "ok": true, "tool": "get_pods"}, {"args": {"configmap": "uc4-config"}, "ok": true, "tool": "get_configmap"}, {"args": {"container": null, "pod": "uc4-deployment-9f758ffc5-jc2mw", "previous": true, "tail_lines": 80}, "ok": true, "tool": "get_pod_logs"}, {"args": {"name_prefix": "uc4"}, "ok": true, "tool": "get_events"}, {"args": {}, "ok": true, "tool": "list_services"}, {"args": {"container": "uc4", "cpu_limit": null, "cpu_request": null, "deployment": "uc4-deployment", "memory_limit": "512Mi", "memory_request": "256Mi"}, "ok": false, "tool": "set_container_resources"}, {"args": {}, "ok": true, "tool": "list_workloads"}, {"args": {"deployment": "uc6"}, "ok": true, "tool": "get_deployment"}, {"args": {"name_prefix": null}, "ok": true, "tool": "get_events"}, {"args": {}, "ok": true, "tool": "list_workloads"}, {"args": {"deployment": "uc4-deployment", "wait_s": 0}, "ok": true, "tool": "check_health"}], "verification": {"cpu_check": "unknown", "healthy": false, "last": null, "waited_s": 14.0}}, "duration_s": 88.5, "finished_at": "2026-11-25T00:18:38+00:00", "incident": "chaos/Deployment/uc4-deployment#llm0", "started_at": "2026-11-25T00:17:10+00:00", "status": "unresolved"}
+INFO:     10.244.1.154:48382 - "POST /resolve HTTP/1.1" 200 OK
+2026-11-25 00:19:06 - INFO - request {"context": {"alertname": "ChaosPodImagePullFailure", "attempt": 1, "facts": {"alertname": "ChaosPodImagePullFailure", "container": "nginx", "exit_code": null, "namespace": "chaos", "phase": "Pending", "pod": "uc6-6c56c9988b-gn6cl", "pod_found": true, "ready": false, "restart_count": 0, "termination_reason": null, "waiting_reason": "ImagePull", "workload_kind": "Deployment", "workload_name": "uc6"}, "llm_attempt": 0, "pod": "uc6-6c56c9988b-gn6cl", "reason": "no playbook matches Signature(alertname='ChaosPodImagePullFailure', waiting_reason='ImagePull', termination_reason=None, attempt=1)", "signature": {"alertname": "ChaosPodImagePullFailure", "attempt": 1, "termination_reason": null, "waiting_reason": "ImagePull"}}, "incident": "chaos/Deployment/uc6#llm0", "target": {"container": "nginx", "kind": "Deployment", "name": "uc6", "namespace": "chaos"}}
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:19:10 - INFO - tool list_workloads {} -> ok
+2026-11-25 00:19:10 - INFO - tool get_deployment {"deployment": "uc6"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:19:13 - INFO - tool get_pods {"deployment": "uc6"} -> ok
+2026-11-25 00:19:13 - INFO - tool get_events {"name_prefix": "uc6"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:19:17 - INFO - tool list_services {} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:19:19 - INFO - tool set_container_image {"deployment": "uc6", "image": "nginx:stable-alpine-perl", "container": "nginx"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:19:22 - WARNING - CPU saturation unknown (no_data). URL=http://monitoring-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090/api/v1/query query=sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{namespace="chaos"}[30s])) / on (namespace, pod) sum by (namespace, pod) (kube_pod_container_resource_limits{namespace="chaos", resource="cpu"})
+2026-11-25 00:19:32 - INFO - tool check_health {"deployment": "uc6", "wait_s": 30} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:19:35 - INFO - tool get_pods {"deployment": "uc6"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:19:47 - INFO - tool check_health {"deployment": "uc6", "wait_s": 10} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:20:01 - INFO - verdict {"action": "llm_agent", "action_applied_after_s": 12.9, "applied": true, "detail": {"changes": [{"change": "uc6/nginx: nginx:stable-alpine600.24-perl -> nginx:stable-alpine-perl", "tool": "set_container_image"}], "llm": {"input_tokens": 51060, "model": "gemini-3.7-flash", "output_tokens": 596, "steps": 8}, "summary": "ROOT CAUSE: The `uc6` deployment specified an invalid container image (`nginx:stable-alpine600.24-perl`), causing an ImagePullBackOff error as the tag does not exist.\nACTIONS: Updated the container image for `uc6` to `nginx:stable-alpine-perl`.\nOUTCOME: healthy", "tool_calls": [{"args": {}, "ok": true, "tool": "list_workloads"}, {"args": {"deployment": "uc6"}, "ok": true, "tool": "get_deployment"}, {"args": {"deployment": "uc6"}, "ok": true, "tool": "get_pods"}, {"args": {"name_prefix": "uc6"}, "ok": true, "tool": "get_events"}, {"args": {}, "ok": true, "tool": "list_services"}, {"args": {"container": "nginx", "deployment": "uc6", "image": "nginx:stable-alpine-perl"}, "ok": true, "tool": "set_container_image"}, {"args": {"deployment": "uc6", "wait_s": 30}, "ok": true, "tool": "check_health"}, {"args": {"deployment": "uc6"}, "ok": true, "tool": "get_pods"}, {"args": {"deployment": "uc6", "wait_s": 10}, "ok": true, "tool": "check_health"}], "verification": {"cpu_check": "unknown", "cpu_problem": "no_data", "healthy": true, "waited_s": 10.0}}, "duration_s": 55.5, "finished_at": "2026-11-25T00:20:01+00:00", "incident": "chaos/Deployment/uc6#llm0", "started_at": "2026-11-25T00:19:06+00:00", "status": "resolved"}
+INFO:     10.244.1.154:35578 - "POST /resolve HTTP/1.1" 200 OK
+2026-11-25 00:20:44 - INFO - request {"context": {"alertname": "ChaosPodNotReady", "attempt": 0, "facts": {"alertname": "ChaosPodNotReady", "container": "uc7", "exit_code": null, "namespace": "chaos", "phase": "Running", "pod": "uc7-7f6598d5f9-7glbc", "pod_found": true, "ready": false, "restart_count": 0, "termination_reason": null, "waiting_reason": null, "workload_kind": "Deployment", "workload_name": "uc7"}, "llm_attempt": 0, "pod": "uc7-7f6598d5f9-7glbc", "reason": "no playbook matches Signature(alertname='ChaosPodNotReady', waiting_reason=None, termination_reason=None, attempt=0)", "signature": {"alertname": "ChaosPodNotReady", "attempt": 0, "termination_reason": null, "waiting_reason": null}}, "incident": "chaos/Deployment/uc7#llm0", "target": {"container": "uc7", "kind": "Deployment", "name": "uc7", "namespace": "chaos"}}
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:20:48 - INFO - tool list_workloads {} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:20:50 - INFO - tool get_deployment {"deployment": "uc7"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:20:54 - INFO - tool get_pods {"deployment": "uc7"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:20:57 - INFO - tool get_events {"name_prefix": "uc7"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:20:59 - INFO - tool get_pod_logs {"pod": "uc7-7f6598d5f9-7glbc", "container": null, "previous": false, "tail_lines": 100} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:21:03 - INFO - tool get_configmap {"configmap": "uc7-config"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:21:05 - INFO - tool list_services {} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:21:50 - INFO - verdict {"action": "llm_agent", "action_applied_after_s": null, "applied": false, "detail": {"changes": [], "llm": {"input_tokens": 39226, "model": "gemini-3.7-flash", "output_tokens": 3563, "steps": 8}, "summary": "ROOT CAUSE: The Deployment uc7 fails its readiness probe (HTTP 503) because it cannot connect to its external database dependency configured at https://www.mytestdburl.com:3000 via UC7_EXTERNAL_DB_URL. The database is external to the cluster and unreachable.\nACTIONS: none\nOUTCOME: not fixed, because the failure is caused by an external dependency outside the Kubernetes cluster that cannot be resolved with in-cluster tools.", "tool_calls": [{"args": {}, "ok": true, "tool": "list_workloads"}, {"args": {"deployment": "uc7"}, "ok": true, "tool": "get_deployment"}, {"args": {"deployment": "uc7"}, "ok": true, "tool": "get_pods"}, {"args": {"name_prefix": "uc7"}, "ok": true, "tool": "get_events"}, {"args": {"container": null, "pod": "uc7-7f6598d5f9-7glbc", "previous": false, "tail_lines": 100}, "ok": true, "tool": "get_pod_logs"}, {"args": {"configmap": "uc7-config"}, "ok": true, "tool": "get_configmap"}, {"args": {}, "ok": true, "tool": "list_services"}], "verification": {"cpu_check": "unknown", "healthy": false, "last": {"ready": false, "restarts": 0, "rolled_out": true}, "waited_s": 14.1}}, "duration_s": 66.5, "finished_at": "2026-11-25T00:21:50+00:00", "incident": "chaos/Deployment/uc7#llm0", "started_at": "2026-11-25T00:20:44+00:00", "status": "unresolved"}
+INFO:     10.244.1.154:57992 - "POST /resolve HTTP/1.1" 200 OK
+2026-11-25 00:22:52 - INFO - request {"context": {"alertname": "ChaosPodNotReady", "attempt": 0, "facts": {"alertname": "ChaosPodNotReady", "container": "uc8-client", "exit_code": null, "namespace": "chaos", "phase": "Running", "pod": "uc8-client-84b8d6b9dd-l74dk", "pod_found": true, "ready": false, "restart_count": 0, "termination_reason": null, "waiting_reason": null, "workload_kind": "Deployment", "workload_name": "uc8-client"}, "llm_attempt": 0, "pod": "uc8-client-84b8d6b9dd-l74dk", "reason": "no playbook matches Signature(alertname='ChaosPodNotReady', waiting_reason=None, termination_reason=None, attempt=0)", "signature": {"alertname": "ChaosPodNotReady", "attempt": 0, "termination_reason": null, "waiting_reason": null}}, "incident": "chaos/Deployment/uc8-client#llm0", "target": {"container": "uc8-client", "kind": "Deployment", "name": "uc8-client", "namespace": "chaos"}}
+2026-11-25 00:22:52 - INFO - request {"context": {"alertname": "ChaosPodNotReady", "attempt": 0, "facts": {"alertname": "ChaosPodNotReady", "container": "uc8-server", "exit_code": null, "namespace": "chaos", "phase": "Running", "pod": "uc8-server-6c65587748-rqwqs", "pod_found": true, "ready": false, "restart_count": 0, "termination_reason": null, "waiting_reason": null, "workload_kind": "Deployment", "workload_name": "uc8-server"}, "llm_attempt": 0, "pod": "uc8-server-6c65587748-rqwqs", "reason": "no playbook matches Signature(alertname='ChaosPodNotReady', waiting_reason=None, termination_reason=None, attempt=0)", "signature": {"alertname": "ChaosPodNotReady", "attempt": 0, "termination_reason": null, "waiting_reason": null}}, "incident": "chaos/Deployment/uc8-server#llm0", "target": {"container": "uc8-server", "kind": "Deployment", "name": "uc8-server", "namespace": "chaos"}}
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:22:56 - INFO - tool list_workloads {} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:22:58 - INFO - tool list_workloads {} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:23:00 - INFO - tool get_pods {"deployment": "uc8-server"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:23:03 - INFO - tool get_pod_logs {"pod": "uc8-server-6c65587748-rqwqs", "container": null, "previous": false, "tail_lines": 80} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:23:06 - INFO - tool get_pods {"deployment": "uc8-client"} -> ok
+2026-11-25 00:23:06 - INFO - tool get_pods {"deployment": "uc8-server"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:23:10 - INFO - tool get_deployment {"deployment": "uc8-server"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:23:13 - INFO - tool get_pod_logs {"pod": "uc8-server-6c65587748-rqwqs", "container": null, "previous": false, "tail_lines": 80} -> ok
+2026-11-25 00:23:13 - INFO - tool get_pod_logs {"pod": "uc8-client-84b8d6b9dd-l74dk", "container": null, "previous": false, "tail_lines": 80} -> ok
+2026-11-25 00:23:13 - INFO - tool get_events {"name_prefix": null} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:23:17 - INFO - tool get_deployment {"deployment": "uc8-server"} -> ok
+2026-11-25 00:23:17 - INFO - tool get_deployment {"deployment": "uc8-client"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:23:19 - INFO - tool get_configmap {"configmap": "uc8-server-config"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:23:21 - INFO - tool get_configmap {"configmap": "uc8-server-config"} -> ok
+2026-11-25 00:23:21 - INFO - tool get_configmap {"configmap": "uc8-client-config"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:23:29 - INFO - tool get_configmap {"configmap": "uc8-client-config"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:23:32 - INFO - tool list_services {} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:23:33 - INFO - tool get_deployment {"deployment": "uc8-client"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:23:38 - INFO - tool get_pods {"deployment": "uc8-client"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:23:41 - INFO - tool get_pod_logs {"pod": "uc8-client-84b8d6b9dd-l74dk", "container": null, "previous": false, "tail_lines": 80} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:23:47 - INFO - tool get_events {"name_prefix": null} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:23:49 - INFO - tool list_services {} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:23:51 - INFO - tool restart_deployment {"deployment": "uc8-server"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:23:55 - INFO - tool get_pods {"deployment": "uc8-server"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:23:58 - WARNING - CPU saturation unknown (no_data). URL=http://monitoring-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090/api/v1/query query=sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{namespace="chaos"}[30s])) / on (namespace, pod) sum by (namespace, pod) (kube_pod_container_resource_limits{namespace="chaos", resource="cpu"})
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:24:01 - INFO - tool restart_deployment {"deployment": "uc8-server"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:24:07 - WARNING - CPU saturation unknown (no_data). URL=http://monitoring-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090/api/v1/query query=sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{namespace="chaos"}[30s])) / on (namespace, pod) sum by (namespace, pod) (kube_pod_container_resource_limits{namespace="chaos", resource="cpu"})
+2026-11-25 00:24:08 - INFO - tool check_health {"deployment": "uc8-client", "wait_s": 30} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:24:17 - INFO - tool check_health {"deployment": "uc8-server", "wait_s": 30} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:24:23 - INFO - tool check_health {"deployment": "uc8-server", "wait_s": 10} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:24:25 - INFO - tool get_pods {"deployment": "uc8-client"} -> ok
+2026-11-25 00:24:25 - INFO - tool get_pods {"deployment": "uc8-server"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:24:30 - INFO - tool check_health {"deployment": "uc8-client", "wait_s": 30} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:24:31 - INFO - tool get_pods {"deployment": "uc8-server"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:24:38 - INFO - tool check_health {"deployment": "uc8-client", "wait_s": 20} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:24:40 - INFO - tool get_pods {"deployment": "uc8-server"} -> ok
+2026-11-25 00:24:40 - INFO - tool get_pods {"deployment": "uc8-client"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:24:46 - INFO - tool check_health {"deployment": "uc8-server", "wait_s": 30} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:24:48 - INFO - tool get_pods {"deployment": "uc8-server"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:24:51 - INFO - tool get_pods {"deployment": "uc8-client"} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:24:55 - INFO - verdict {"action": "llm_agent", "action_applied_after_s": 58.8, "applied": true, "detail": {"changes": [{"change": "uc8-server", "tool": "restart_deployment"}], "llm": {"input_tokens": 167744, "model": "gemini-3.7-flash", "output_tokens": 3888, "steps": 14}, "summary": "ROOT CAUSE: The database worker process in the backend dependency `uc8-server` became stalled, causing its readiness probe and database queries from `uc8-client` to time out and fail readiness checks.\nACTIONS: Restarted Deployment `uc8-server` with a rolling restart to recover the stuck worker process.\nOUTCOME: healthy", "tool_calls": [{"args": {}, "ok": true, "tool": "list_workloads"}, {"args": {"deployment": "uc8-client"}, "ok": true, "tool": "get_pods"}, {"args": {"deployment": "uc8-server"}, "ok": true, "tool": "get_pods"}, {"args": {"container": null, "pod": "uc8-server-6c65587748-rqwqs", "previous": false, "tail_lines": 80}, "ok": true, "tool": "get_pod_logs"}, {"args": {"container": null, "pod": "uc8-client-84b8d6b9dd-l74dk", "previous": false, "tail_lines": 80}, "ok": true, "tool": "get_pod_logs"}, {"args": {"name_prefix": null}, "ok": true, "tool": "get_events"}, {"args": {"deployment": "uc8-server"}, "ok": true, "tool": "get_deployment"}, {"args": {"deployment": "uc8-client"}, "ok": true, "tool": "get_deployment"}, {"args": {"configmap": "uc8-server-config"}, "ok": true, "tool": "get_configmap"}, {"args": {"configmap": "uc8-client-config"}, "ok": true, "tool": "get_configmap"}, {"args": {}, "ok": true, "tool": "list_services"}, {"args": {"deployment": "uc8-server"}, "ok": true, "tool": "restart_deployment"}, {"args": {"deployment": "uc8-server"}, "ok": true, "tool": "get_pods"}, {"args": {"deployment": "uc8-client", "wait_s": 30}, "ok": true, "tool": "check_health"}, {"args": {"deployment": "uc8-server", "wait_s": 10}, "ok": true, "tool": "check_health"}, {"args": {"deployment": "uc8-client"}, "ok": true, "tool": "get_pods"}, {"args": {"deployment": "uc8-server"}, "ok": true, "tool": "get_pods"}, {"args": {"deployment": "uc8-client", "wait_s": 20}, "ok": true, "tool": "check_health"}, {"args": {"deployment": "uc8-server"}, "ok": true, "tool": "get_pods"}, {"args": {"deployment": "uc8-client"}, "ok": true, "tool": "get_pods"}], "verification": {"cpu_check": "unknown", "cpu_problem": "no_data", "healthy": true, "waited_s": 10.1}}, "duration_s": 123.3, "finished_at": "2026-11-25T00:24:55+00:00", "incident": "chaos/Deployment/uc8-client#llm0", "started_at": "2026-11-25T00:22:52+00:00", "status": "resolved"}
+INFO:     10.244.1.154:53680 - "POST /resolve HTTP/1.1" 200 OK
+2026-11-25 00:25:04 - INFO - tool check_health {"deployment": "uc8-server", "wait_s": 10} -> ok
+INFO:httpx:HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent "HTTP/1.1 200 OK"
+2026-11-25 00:25:18 - INFO - verdict {"action": "llm_agent", "action_applied_after_s": 68.8, "applied": true, "detail": {"changes": [{"change": "uc8-server", "tool": "restart_deployment"}], "llm": {"input_tokens": 196355, "model": "gemini-3.7-flash", "output_tokens": 2706, "steps": 20}, "summary": "ROOT CAUSE: The uc8-server process entered a stalled/hung state causing its readiness probe (/ready) to return HTTP 503 and fail.\nACTIONS: Restarted Deployment uc8-server using restart_deployment to clear the stuck process.\nOUTCOME: healthy", "tool_calls": [{"args": {}, "ok": true, "tool": "list_workloads"}, {"args": {"deployment": "uc8-server"}, "ok": true, "tool": "get_pods"}, {"args": {"container": null, "pod": "uc8-server-6c65587748-rqwqs", "previous": false, "tail_lines": 80}, "ok": true, "tool": "get_pod_logs"}, {"args": {"deployment": "uc8-server"}, "ok": true, "tool": "get_deployment"}, {"args": {"configmap": "uc8-server-config"}, "ok": true, "tool": "get_configmap"}, {"args": {"configmap": "uc8-client-config"}, "ok": true, "tool": "get_configmap"}, {"args": {"deployment": "uc8-client"}, "ok": true, "tool": "get_deployment"}, {"args": {"deployment": "uc8-client"}, "ok": true, "tool": "get_pods"}, {"args": {"container": null, "pod": "uc8-client-84b8d6b9dd-l74dk", "previous": false, "tail_lines": 80}, "ok": true, "tool": "get_pod_logs"}, {"args": {"name_prefix": null}, "ok": true, "tool": "get_events"}, {"args": {}, "ok": true, "tool": "list_services"}, {"args": {"deployment": "uc8-server"}, "ok": true, "tool": "restart_deployment"}, {"args": {"deployment": "uc8-server", "wait_s": 30}, "ok": true, "tool": "check_health"}, {"args": {"deployment": "uc8-client", "wait_s": 30}, "ok": true, "tool": "check_health"}, {"args": {"deployment": "uc8-server"}, "ok": true, "tool": "get_pods"}, {"args": {"deployment": "uc8-server", "wait_s": 30}, "ok": true, "tool": "check_health"}, {"args": {"deployment": "uc8-server"}, "ok": true, "tool": "get_pods"}, {"args": {"deployment": "uc8-client"}, "ok": true, "tool": "get_pods"}, {"args": {"deployment": "uc8-server", "wait_s": 10}, "ok": true, "tool": "check_health"}], "verification": {"cpu_check": "unknown", "cpu_problem": "no_data", "healthy": true, "waited_s": 10.1}}, "duration_s": 145.9, "finished_at": "2026-11-25T00:25:18+00:00", "incident": "chaos/Deployment/uc8-server#llm0", "started_at": "2026-11-25T00:22:52+00:00", "status": "resolved"}
+INFO:     10.244.1.154:53684 - "POST /resolve HTTP/1.1" 200 OK

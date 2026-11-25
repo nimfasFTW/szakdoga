@@ -67,6 +67,4 @@ tar --exclude=".venv" -czvf /mnt/e/InformationTechnology/dispatcher.tar.gz dispa
 tar --exclude=".venv" -czvf /mnt/e/InformationTechnology/szakdoga.tar.gz szakdoga/
 
 
-TODO:
-- CHECK IF THE DB PATHS IN THE UC main.py FILE NEED my-svc.my-namespace.svc.cluster-domain.example
-        SHOULD MEAN NO PROBLEM, SINCE THEY ARE IN THE SAME NAMESPACE.   EG.  url="http://deter-resolver:8000/resolve" SHOULD WORK
+for run in {1..5}; do ./misc/test.sh; done
